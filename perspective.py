@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 def boundingRect_coral(img):
     """ Produce boundingRect for just the coral structure """
 
-    
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     my_mask = cv2.inRange(hsv, np.array([0,30,136]), np.array([255,255,255]))
@@ -52,8 +51,6 @@ def perspective_transformation(img, x, y, w, h):
 
     rows, cols, ch = img.shape
 
-    # coor_orig_img = np.float32([[87,87], [467,96], [82, 439], [482,457]])
-    # coor_orig_img = np.float32([[92,294], [392,165], [211, 506], [515,317]])
     coor_orig_img = np.float32([[x,y], [x+w,y], [x,y+h], [x+w,y+h]])
     for x in range(4):
         cv2.circle(img, (int(coor_orig_img[x][0]), int(coor_orig_img[x][1])), 5, (255,0,0), -1)
@@ -61,8 +58,6 @@ def perspective_transformation(img, x, y, w, h):
     # cv2.imshow("Input", img)
     plt.subplot(121), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)), plt.title("Input")
 
-    # height, width = 500, 500
-    # height, width = 300, 400
     height, width = h, w
     coor_new_img = np.float32([[0,0], [width,0], [0,height], [width,height]])
 

@@ -1,9 +1,5 @@
-#! python
-
 import cv2
 import numpy as np
-
-IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "fron_flip.jpg"]
 
 COLOR_GREEN  = [0,255,0]    # GROWTH
 COLOR_YELLOW = [0,255,255]  # DAMAGE/DEATH
@@ -22,20 +18,6 @@ def background_remover(img):
     # cv2.imshow("res", res)
 
     return res
-
-def unsharp_mask(image, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
-    # copy from internet, not really used for now
-    # https://stackoverflow.com/questions/4993082/how-can-i-sharpen-an-image-in-opencv
-    """Return a sharpened version of the image, using an unsharp mask."""
-    blurred = cv2.GaussianBlur(image, kernel_size, sigma)
-    sharpened = float(amount + 1) * image - float(amount) * blurred
-    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
-    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
-    sharpened = sharpened.round().astype(np.uint8)
-    if threshold > 0:
-        low_contrast_mask = np.absolute(image - blurred) < threshold
-        np.copyto(sharpened, image, where=low_contrast_mask)
-    return sharpened
 
 def remove_noise(img, ksize=5, thresh_val=32):
     """ Remove noise from img using medianBlur """
@@ -73,16 +55,6 @@ def get_mean(img, cont):
     cv2.waitKey(0)
     return mean
 
-def get_cont_mask(img, cont):
-    """ Unused ??? """
-
-    cont_mask = np.zeros(img.shape[:2], dtype=np.uint8)
-    cv2.drawContours(cont_mask, [cont], -1, [255,255,255], -1)
-    # cont_mask = cv2.cvtColor(cont_mask, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("cont_mask", cont_mask)
-    cv2.waitKey(0)
-    return cont_mask
-
 def compare_mean(curr_coral, xor_diff_coral, cont):
     """ Compare contour mean between structure in xor_diff and in current coral
         Returns False if difference is below a certain value                    """
@@ -95,12 +67,13 @@ def compare_mean(curr_coral, xor_diff_coral, cont):
     # only need to grab mean()[0] because dealing with binary images
     cont_mean = cv2.mean(cont_img)[0]
     # print("cm", cont_mean)
-    cv2.imshow("temp1", cont_img)
+    # cv2.imshow("temp1", cont_img)
 
-    mask_for_img = np.zeros(curr_coral.shape[:2], np.uint8)
-    cv2.rectangle(mask_for_img, (x,y), (x+w,y+h), 255, -1)
-    cv2.imshow("temp2", mask_for_img)
-    img_section_mean = cv2.mean(curr_coral, mask_for_img)[0]
+    mask_for_contour_in_img = np.zeros(curr_coral.shape[:2], np.uint8)
+    cv2.rectangle(mask_for_contour_in_img, (x,y), (x+w,y+h), 255, -1)
+    # cv2.imshow("temp2", mask_for_contour_in_img)
+
+    img_section_mean = cv2.mean(curr_coral, mask_for_contour_in_img)[0]
     # print("ism", img_section_mean)
     cv2.waitKey(0)
 
@@ -111,19 +84,16 @@ def compare_mean(curr_coral, xor_diff_coral, cont):
         return True
 
 
+IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg"]
 
 if __name__ == "__main__":
-        
+    
+    """ Choose which two images to compare from here """
     old = cv2.imread(IMAGES[0])
-    new = cv2.imread(IMAGES[2])
+    new = cv2.imread(IMAGES[1])
     cv2.imshow("old", old)
     cv2.imshow("new", new)
     cv2.waitKey(0)
-
-    # old = unsharp_mask(old)
-    # new = unsharp_mask(new)
-    # cv2.imshow("sharp", old_sharp)
-    # cv2.imwrite("coral_past_sharp.jpg",old_sharp)
 
     old_coral = background_remover(old)
     new_coral = background_remover(new)
@@ -131,6 +101,7 @@ if __name__ == "__main__":
     cv2.imshow("new_cor", new_coral)
     cv2.waitKey(0)
 
+    # TODO: resizing images so that these old_coral, new_coral would always be same size
     diff = cv2.bitwise_xor(old_coral, new_coral)
     cv2.imshow("diff", diff)
 
@@ -159,7 +130,7 @@ if __name__ == "__main__":
 
         x, y, w, h = cv2.boundingRect(cont)
 
-        # method 1: finding difference of mean
+        """ Method 1: finding difference of mean """
         if compare_mean(new_coral_bin, closed_diff, cont) == False:
             # new structure: growth
             cv2.rectangle(new, (x,y), (x+w,y+h), COLOR_GREEN, 5)
@@ -167,14 +138,13 @@ if __name__ == "__main__":
             # contour absent in current coral: death
             cv2.rectangle(new, (x,y), (x+w,y+h), COLOR_YELLOW, 5)
 
-        # method 2: differentiating using mean of contour color
+        """ Method 2: differentiating using mean of contour color """
         # mean = get_mean(new_coral_bin[x:y, x+w:y+h], cont)
 
         # mean = get_mean(new_coral, cont)
         # hue = mean[0]
         # sat = mean[1]
         # val = mean[2]
-        
         
         # if sat<50 and val>200:
         #     # if pipe is white: bleached
