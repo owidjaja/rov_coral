@@ -5,4 +5,5 @@ Using image recognition to determine the health of a coral colony by comparing i
 Manual page 35-37
 
 perpective.py: basic use of perspective transformation
+
 compare.py: compare coral structures using hardcoded hsv values, contours, and bitwise operations on images
