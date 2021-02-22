@@ -5,10 +5,14 @@ def extend_range(value, is_type_hue, upper_or_lower):
     # https://github.com/alieldinayman/HSV-Color-Picker/blob/master/HSV%20Color%20Picker.py
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
 
+    """ Assign ranges based on hsv type and whether the range is upper or lower, with hardcoded tolerance value
+        Still having trouble finding appropriate tolerance value for real underwater image """
+
+    # TODO: Need to adjust tolerance value, may consider using trackbar 
     TOLERANCE = 25
 
     if is_type_hue == 1:
-        # set the boundary for hue (0-180)
+        # set the boundary for hue (0-180)°
         boundary = 180
     else:
         # set the boundary for saturation and value (0-255)
@@ -19,6 +23,7 @@ def extend_range(value, is_type_hue, upper_or_lower):
     elif upper_or_lower == 'l':
         value = value - TOLERANCE
 
+    # adjust for extreme values
     if(value + TOLERANCE > boundary):
         value = boundary
     elif (value - TOLERANCE < 0):
@@ -27,6 +32,8 @@ def extend_range(value, is_type_hue, upper_or_lower):
     return value
 
 def click_event(event, x, y, flags, img):
+    """ Click on image in hsv window """
+
     if event == cv2.EVENT_LBUTTONDOWN:
         hsv_val = img[y,x]
         print("Actual HSV Values:", hsv_val)
@@ -55,6 +62,8 @@ def click_event(event, x, y, flags, img):
 IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg"]
 
 def main():
+    """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
+
     src = cv2.imread(IMAGES[0])
     # cv2.imshow("src", src)
 
