@@ -37,8 +37,8 @@ def boundingRect_coral(img):
     ERROR_MARGIN = 25
     x -= ERROR_MARGIN
     y -= ERROR_MARGIN
-    w += Err
-    h += Err
+    w += ERROR_MARGIN
+    h += ERROR_MARGIN
 
     cv2.rectangle(img, (x,y), (x+w,y+h), [0,255,0])
 
