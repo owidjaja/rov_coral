@@ -84,11 +84,14 @@ def compare_mean(curr_coral, xor_diff_coral, cont):
         return True
 
 
-IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg"]
+IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg"]
 
 if __name__ == "__main__":
     
-    """ Choose which two images to compare from here """
+    """ Choose which two images to compare from here
+        Working ones for now are IMAGES[0] and IMAGES[1]
+        Need to work on resizing to a standard size for the rest """
+
     old = cv2.imread(IMAGES[0])
     new = cv2.imread(IMAGES[1])
     cv2.imshow("old", old)
