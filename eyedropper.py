@@ -37,18 +37,25 @@ def click_event(event, x, y, flags, img):
     if event == cv2.EVENT_LBUTTONDOWN:
         hsv_val = img[y,x]
         print("Actual HSV Values:", hsv_val)
+        hue = int(hsv_val[0])
+        sat = int(hsv_val[1])
+        val = int(hsv_val[2])
+
+        pixel_preview = np.zeros((150,150,3), dtype=np.uint8)
+        cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
+        cv2.imshow("Pixel Preview in HSV", pixel_preview)
 
         coor_string = str(x) + ',' + str(y)
         hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
 
         # cv2.putText(img, hsv_val_string, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1)
         
-        hue_upper = extend_range(hsv_val[0], 1, 'u')
-        hue_lower = extend_range(hsv_val[0], 1, 'l')
-        sat_upper = extend_range(hsv_val[1], 0, 'u')
-        sat_lower = extend_range(hsv_val[1], 0, 'l')
-        val_upper = extend_range(hsv_val[2], 0, 'u')
-        val_lower = extend_range(hsv_val[2], 0, 'l')
+        hue_upper = extend_range(hue, 1, 'u')
+        hue_lower = extend_range(hue, 1, 'l')
+        sat_upper = extend_range(sat, 0, 'u')
+        sat_lower = extend_range(sat, 0, 'l')
+        val_upper = extend_range(val, 0, 'u')
+        val_lower = extend_range(val, 0, 'l')
 
         upper =  np.array([hue_upper, sat_upper, val_upper])
         lower =  np.array([hue_lower, sat_lower, val_lower])
@@ -59,7 +66,7 @@ def click_event(event, x, y, flags, img):
 
         cv2.imshow("hsv", img)
 
-IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg"]
+IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg", "coral_dmg_left.jpg"]
 
 def main():
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
@@ -72,8 +79,8 @@ def main():
     hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
     cv2.imshow("hsv", hsv)
 
+    cv2.namedWindow("Pixel Preview in HSV")
     cv2.setMouseCallback('hsv', click_event, hsv)
-
 
 
     cv2.waitKey(0)
