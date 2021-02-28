@@ -19,8 +19,6 @@ def click_event(event, x, y, flags, param):
         cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
         cv2.imshow("Pixel Preview in HSV", pixel_preview)
 
-        cv2.imshow("hsv", img)
-
         TOLERANCE = 10
         lower =  np.array([hue-TOLERANCE, 0, 0])
         upper =  np.array([hue+TOLERANCE, 255, 255])
@@ -28,12 +26,10 @@ def click_event(event, x, y, flags, param):
         temp_mask = cv2.inRange(img,lower,upper)
         cv2.imshow("temp_mask",temp_mask)
 
-IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg", "coral_dmg_left.jpg", "star.jpeg"]
-
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread(IMAGES[6])
+    src = cv2.imread("star.jpeg")
 
     hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
     cv2.imshow("hsv", hsv)
