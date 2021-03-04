@@ -120,8 +120,6 @@ def background_remover(hsv):
 
     return pink_white_mask
 
-def
-
 if __name__ == "__main__":
     IMAGES = ["coral_past.jpg", "black_box.jpg", "coral_dmg_mid.jpg", "front_flip.jpg", "coral_underwater.jpg"]
 
