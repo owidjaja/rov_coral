@@ -90,6 +90,12 @@ def click_event(event, x, y, flags, img):
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
     
+def closing(img, ksize=5):
+    kernel = np.ones((ksize,ksize), np.uint8)
+    closed = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+    return closed
+
+""" MAIN FUNCTIONS """
 def background_remover(hsv):
     global adjusting, temp_mask
 
@@ -116,9 +122,67 @@ def background_remover(hsv):
     # cv2.imshow("white_mask", white_mask)
 
     pink_white_mask = cv2.bitwise_or(pink_mask, white_mask)
+    
     # cv2.imshow("combined_mask", pink_white_mask)
 
     return pink_white_mask
+
+def alignment(gray):
+    ret, thresh_gray = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    gray = closing(thresh_gray, ksize=5)
+
+    contours, hierarchy = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    # print(len(contours))
+
+    if len(contours)==0:
+        print("No contours found !!!")
+        raise SystemExit()
+
+    biggest_contour = contours[0]
+    max_area = cv2.contourArea(biggest_contour)
+    for cont in contours:
+        this_area = cv2.contourArea(cont)
+        if this_area > max_area:
+            biggest_contour = cont
+            max_area = this_area
+
+    x, y, w, h = cv2.boundingRect(biggest_contour)
+    # cv2.imshow("WIP_GRAY", gray)
+    # cv2.drawContours(gray, [biggest_contour], -1, 0, -1)
+    # cv2.imshow("DRAW_GRAY", gray)
+
+    # TODO: hardcoding of dimension extension
+    # To give some extension on window
+    EXTEND_DIMENSION = 0.05
+    x0 = int(x - (EXTEND_DIMENSION * w))
+    y0 = int(y - (EXTEND_DIMENSION * h))
+    x1 = int(x + ((1+EXTEND_DIMENSION) * w))
+    y1 = int(y + ((1+EXTEND_DIMENSION) * h))
+
+    print(x,y,x+w,y+h)
+    print(x0,y0,x1,y1)
+
+    contour_coordinates = np.float32([[x0,y0], [x1,y0], [x0,y1], [x1,y1]])
+
+    height, width = h, w
+    coordinates_new_img = np.float32([[0,0], [width,0], [0,height], [width,height]])
+
+    matrix_perspective = cv2.getPerspectiveTransform(contour_coordinates, coordinates_new_img)
+    perspective = cv2.warpPerspective(gray, matrix_perspective, (width, height))
+    cv2.imshow("orig", gray)
+    cv2.imshow("pers", perspective)
+
+    # TODO: hardcoding target dimension
+    TARGET_DIM = 600
+
+    big_pers = scale_resizing(perspective, TARGET_DIM/perspective.shape[0]*100)
+    # cv2.imshow("big_pers", big_pers)
+    ret, thresh = cv2.threshold(big_pers, 127, 255, cv2.THRESH_BINARY)
+    closed = closing(thresh, ksize=9)
+    print(closed.shape)
+    cv2.imshow("closed_Pers_transformation", closed)
+
+    return closed
 
 if __name__ == "__main__":
     IMAGES = ["coral_past.jpg", "black_box.jpg", "coral_dmg_mid.jpg", "front_flip.jpg", "coral_underwater.jpg"]
@@ -149,8 +213,11 @@ if __name__ == "__main__":
     cv2.imshow("Old Mask in Main...", old_mask)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
     new_mask = background_remover(new_hsv)
     cv2.imshow("New Mask in Main...", new_mask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     """ Step 2: Alignment of the two images 
         a. further isolate coral structure by identifying the biggest contour
@@ -160,7 +227,10 @@ if __name__ == "__main__":
     # cv2.imwrite("OldMask.jpg", old_mask)
     # cv2.imwrite("NewMask.jpg", new_mask)
 
-
+    old_mask_aligned = alignment(old_mask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    new_mask_aligned = alignment(new_mask)
 
     """ Step 3: Identify changes
         a. for growth and death: can use bitwise xor
