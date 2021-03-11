@@ -42,22 +42,35 @@ def perspective_transformation(img, x, y, w, h):
     cv2.imshow("pers", perspective)
 
 def enlarge_image(original_image, factor=2):
+    """ UNUSED, replaced by scale_resizing(img,scale) """
     original_height, original_width = original_image.shape[:2]
     resized_image = cv2.resize(original_image, (int(original_height*factor), int(original_width*factor)), interpolation=cv2.INTER_CUBIC)
 
     # cv2.imshow('resized_image.jpg',resized_image)
     return resized_image
 
+def scale_resizing(img, scale):
+    print("Original Dimension: ", img.shape)
 
-IMAGES = ["NewMask.jpg", "NewMask_under.jpg", "front_flip.jpg", "OldMask_Flip.jpg"]
-old = cv2.imread(IMAGES[3], cv2.IMREAD_GRAYSCALE)
-new = cv2.imread(IMAGES[1], cv2.IMREAD_GRAYSCALE)
+    width = int(img.shape[1] * (scale/100))
+    height= int(img.shape[0] * (scale/100))
+    dim = (width, height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+    print("Resized Dimension: ", resized.shape)
+    return resized
+
+
+IMAGES = ["NewMask.jpg", "NewMask_under.jpg", "front_flip.jpg", "OldMask_Flip.jpg", "OldMask.jpg"]
+old = cv2.imread(IMAGES[4], cv2.IMREAD_GRAYSCALE)
+new = cv2.imread(IMAGES[0], cv2.IMREAD_GRAYSCALE)
 
 cv2.imshow("ORIGINAL_new", new)
 cv2.waitKey(0)
 
-contours, hierarchy = cv2.findContours(new, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+contours, hierarchy = cv2.findContours(new, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 # print(len(contours))
+cv2.drawContours(new, contours, -1, 255, -1)
 
 biggest_contour = contours[0]
 max_area = cv2.contourArea(biggest_contour)
@@ -67,10 +80,28 @@ for cont in contours:
         biggest_contour = cont
         max_area = this_area
 
+""" UNUSED: Identifying contours based on hierarchy 
+    https://stackoverflow.com/questions/11782147/python-opencv-contour-tree-hierarchy 
+    extra: https://stackoverflow.com/questions/25733694/process-image-to-find-external-contour """
+# contours,hierarchy = cv2.findContours(edges, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+# hierarchy = hierarchy[0] # get the actual inner list of hierarchy descriptions
+
+# # For each contour, find the bounding rectangle and draw it
+# for component in zip(contours, hierarchy):
+#     currentContour = component[0]
+#     currentHierarchy = component[1]
+#     x,y,w,h = cv2.boundingRect(currentContour)
+#     if currentHierarchy[2] < 0:
+#         # these are the innermost child components
+#         cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),3)
+#     elif currentHierarchy[3] < 0:
+#         # these are the outermost parent components
+#         cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),3)
+
 x, y, w, h = cv2.boundingRect(biggest_contour)
 
 # To give some extension on window
-EXTEND_DIMENSION = 0.1
+EXTEND_DIMENSION = 0.05
 x0 = int(x - (EXTEND_DIMENSION * w))
 y0 = int(y - (EXTEND_DIMENSION * h))
 x1 = int(x + ((1+EXTEND_DIMENSION) * w))
@@ -89,18 +120,19 @@ y1 = int(y + ((1+EXTEND_DIMENSION) * h))
 print(x,y,x+w,y+h)
 print(x0,y0,x1,y1)
 
-coordinates_cont = np.float32([[x0,y0], [x1,y0], [x0,y1], [x1,y1]])
+contour_coordinates = np.float32([[x0,y0], [x1,y0], [x0,y1], [x1,y1]])
 
 height, width = h, w
 coordinates_new_img = np.float32([[0,0], [width,0], [0,height], [width,height]])
 
-matrix_perspective = cv2.getPerspectiveTransform(coordinates_cont, coordinates_new_img)
+matrix_perspective = cv2.getPerspectiveTransform(contour_coordinates, coordinates_new_img)
 perspective = cv2.warpPerspective(new, matrix_perspective, (width, height))
 cv2.imshow("new", new)
 cv2.imshow("pers", perspective)
 
 TARGET_DIM = 600
-big_pers = enlarge_image(perspective, TARGET_DIM/perspective.shape[0])
+# big_pers = enlarge_image(perspective, TARGET_DIM/perspective.shape[0])
+big_pers = scale_resizing(perspective, TARGET_DIM/perspective.shape[0]*100)
 
 # canvas_shape = [new.shape[0], new.shape[1], 3]
 # canvas = np.zeros(canvas_shape, dtype=np.uint8)
@@ -120,7 +152,8 @@ closed = closing(thresh, ksize=9)
 print(closed.shape)
 cv2.imshow("new_closed", closed)
 
-big_old  = enlarge_image(old, TARGET_DIM/old.shape[0])
+# big_old  = enlarge_image(old, TARGET_DIM/old.shape[0])
+big_old = scale_resizing(old, TARGET_DIM/old.shape[0]*100)
 old_closed = closing(big_old, 9)
 cv2.imshow("old", old_closed)
 
