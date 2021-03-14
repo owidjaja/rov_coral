@@ -4,6 +4,8 @@ import numpy as np
 class coral_image():
     def __init__(self, img_src, tolerance_array):
         self.src = cv2.imread(img_src)
+        self.hsv = cv2.cvtColor(self.src, cv2.COLOR_BGR2HSV)
+
         self.hue_tolerance = tolerance_array[0]
         self.sat_tolerance = tolerance_array[1]
         self.val_tolerance = tolerance_array[2]
@@ -205,7 +207,6 @@ if __name__ == "__main__":
     """ Step 0: Reading Image Inputs """
     # old = cv2.imread(IMAGES[0])
     # new = cv2.imread(IMAGES[2])
-
     old = coral_image(IMAGES[0], [30,50,50])
     new = coral_image(IMAGES[2], [15,50,50])
 
@@ -219,15 +220,18 @@ if __name__ == "__main__":
 
     print("Images successfully read\n")
 
-    old_hsv = cv2.cvtColor(old, cv2.COLOR_BGR2HSV)
-    new_hsv = cv2.cvtColor(new, cv2.COLOR_BGR2HSV)
+    # old_hsv = cv2.cvtColor(old, cv2.COLOR_BGR2HSV)
+    # new_hsv = cv2.cvtColor(new, cv2.COLOR_BGR2HSV)
+    # in __init__
 
     """ Step 1: Background Removal 
         a. eyedropper function
         b. create mask based on eyedropper """
 
     # Initializing global variables to be used in mouse callback: pink and white mask
-    adjusting = False # true if right clicked
+    # adjusting = False # true if right clicked
+    # in __init__
+
     temp_mask = np.zeros((2,2), dtype=np.uint8)
 
     old_mask = background_remover(old_hsv)
