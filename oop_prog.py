@@ -74,9 +74,9 @@ class coral_image():
             # hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
             # cv2.putText(img, hsv_val_string, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1)
 
-            HUE_TOLERANCE = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
-            SAT_TOLERANCE = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
-            VAL_TOLERANCE = cv2.getTrackbarPos("val_track", "Trackbar_Window")
+            self.hue_tolerance = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
+            self.sat_tolerance = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
+            self.val_tolerance = cv2.getTrackbarPos("val_track", "Trackbar_Window")
 
             hue_upper = self.extend_hsv_range(hue, 1, 'u', self.hue_tolerance)
             hue_lower = self.extend_hsv_range(hue, 1, 'l', self.hue_tolerance)
@@ -131,9 +131,9 @@ class coral_image():
 
         cv2.namedWindow("Pixel Preview in HSV")
         cv2.namedWindow("Trackbar_Window")
-        cv2.createTrackbar("hue_track", "Trackbar_Window", 30, 180, cb_nothing)
-        cv2.createTrackbar("sat_track", "Trackbar_Window", 50, 255, cb_nothing)
-        cv2.createTrackbar("val_track", "Trackbar_Window", 50, 255, cb_nothing)
+        cv2.createTrackbar("hue_track", "Trackbar_Window", self.hue_tolerance, 180, cb_nothing)
+        cv2.createTrackbar("sat_track", "Trackbar_Window", self.sat_tolerance, 255, cb_nothing)
+        cv2.createTrackbar("val_track", "Trackbar_Window", self.val_tolerance, 255, cb_nothing)
 
         cv2.imshow("hsv", self.hsv)
 
@@ -177,10 +177,12 @@ class coral_image():
                 biggest_contour = cont
                 max_area = this_area
 
+        # new_mask = np.zeros(self.gray.shape, dtype=np.uint8)
+        # cv2.drawContours(new_mask, [biggest_contour], -1, 255, thickness=-1)
+        # cv2.imshow("new_mask", new_mask)
+        # cv2.waitKey(0)
+
         x, y, w, h = cv2.boundingRect(biggest_contour)
-        # cv2.imshow("WIP_GRAY", self.gray)
-        # cv2.drawContours(self.gray, [biggest_contour], -1, 0, -1)
-        # cv2.imshow("DRAW_GRAY", self.gray)
 
         # TODO: hardcoding of dimension extension
         # To give some extension on window
@@ -227,8 +229,10 @@ if __name__ == "__main__":
     old = coral_image(IMAGES[0], [30,50,50])
     new = coral_image(IMAGES[2], [13,50,50])
 
-    old.print_src()
-    new.print_src()
+    # old.print_src()
+    # new.print_src()
+    cv2.imshow("old_src", old.src)
+    cv2.imshow("new_src", new.src)
 
     print("Images successfully read\n")
     cv2.waitKey(0)
