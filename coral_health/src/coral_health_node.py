@@ -5,7 +5,7 @@ import rospy
 """ TO BE CHANGED ACCORDING TO DENNIS """
 # https://git.epoxsea.com/rov-2019/cannon_length/blob/master/src/nodes/cannon_length_node.py
 from sensor_msgs.msg import CompressedImage
-from std_msgs/msg import Int16
+from std_msgs.msg import Int16
 # from rov_messages.msg import __
 
 """ TEMP MINH CODE """
@@ -21,25 +21,26 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
 # importing the class definition
-from coral_health.program import coral_image
+from scripts.coral_health_program import coral_image
+
+""" PUT OLD OUTSIDE MAIN CALLBACK """
 
 # put main code under a func to be callback
 # rospy spin once
-def main_callback():
-    try:
-        cv_image = bridge.imgmsg_to_cv2(msg.frame, "bgr8")
-    except CvBridge as e:
-        print (e)
-
-    IMAGES = ["coral_past.jpg", "black_box.jpg", "coral_dmg_mid.jpg", "front_flip.jpg", "coral_underwater.jpg"]
+def main_callback(msg):
+    print("looping in main_cb")
 
     """ Step 0: Reading Image Inputs """
-    old = coral_image(IMAGES_NEW[3], [30,50,50])
-    new = coral_image(cv_bridge, [13,50,50])
+    old = coral_image("old_scaled40.jpg", [30,50,50], "/home/oscar/catkin_ws/src/coral_health/src/")
+
+    try:
+        cv_image = bridge.imgmsg_to_cv2(msg.frame, "bgr8")
+    except CvBridgeError as e:
+        print(e)
+
+    new = coral_image(cv_image, [13,50,50], 0)
 
     cv2.imshow("old_src", old.src)
-    # cv2.imshow("new_src", new.src)
-    print("Images successfully read\n")
     rospy.loginfo("Images successfully read")
 
     """ Step 1: Background Removal """
@@ -83,12 +84,14 @@ def main():
 
     """ temporarily working with Minhs code"""
     rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback)
+    print("After subscribing")
 
     while not rospy.is_shutdown():
         try:
             rospy.spin()
         except KeyboardInterrupt:
             print("Shutting down from user interrupt...")
+            rospy.loginfo("Shutting down from user interrupt...")
             rospy.signal_shutdown()
             break
 
