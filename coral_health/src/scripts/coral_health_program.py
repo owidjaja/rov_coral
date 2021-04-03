@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from cv_bridge import CvBridge, CvBridgeError
@@ -223,65 +223,3 @@ class coral_image():
         self.pers_transformed = closed
 
         # return closed
-
-
-
-
-if __name__ == "__main__":
-    IMAGES = ["coral_past.jpg", "black_box.jpg", "coral_dmg_mid.jpg", "front_flip.jpg", "coral_underwater.jpg"]
-
-    """ Step 0: Reading Image Inputs """
-    old = coral_image(IMAGES[0], [30,50,50])
-    new = coral_image(IMAGES[2], [13,50,50])
-
-    # old.print_src()
-    # new.print_src()
-    cv2.imshow("old_src", old.src)
-    cv2.imshow("new_src", new.src)
-
-    print("Images successfully read\n")
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    """ Step 1: Background Removal 
-        a. eyedropper function
-        b. create mask based on eyedropper """
-
-    old.background_remover()
-    cv2.imshow("Old Mask in Main...", old.pink_white_mask)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    new.background_remover()
-    cv2.imshow("New Mask in Main...", new.pink_white_mask)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    """ Step 2: Alignment of the two images 
-        a. further isolate coral structure by identifying the biggest contour
-        b. boundingRect on coral from contour
-        c. use the (bottom) black structure for basis for alignment """
-
-    # cv2.imwrite("OldMask.jpg", old_mask)
-    # cv2.imwrite("NewMask.jpg", new_mask)
-
-    old.alignment()
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    new.alignment()
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-    cv2.imshow("Old Aligned Mask in Main...", old.pers_transformed)
-    cv2.imshow("New Aligned Mask in Main...", new.pers_transformed)
-
-    # cv2.imwrite("old_aligned.jpg", old.pers_transformed)
-    # cv2.imwrite("new_aligned.jpg", new.pers_transformed)
-
-    """ Step 3: Identify changes
-        a. for growth and death: can use bitwise xor
-        b. for bleaching and recovery: may need to use mean color? """
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
