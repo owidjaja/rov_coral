@@ -11,6 +11,9 @@ from std_msgs/msg import Int16
 """ TEMP MINH CODE """
 from advtrn_msg.msg import VideoStream
 
+from cv_bridge import CvBridge, CvBridgeError
+bridge = CvBridge()
+
 # Setup proper filepaths
 import os, sys, inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -23,11 +26,16 @@ from coral_health.program import coral_image
 # put main code under a func to be callback
 # rospy spin once
 def main_callback():
+    try:
+        cv_image = bridge.imgmsg_to_cv2(msg.frame, "bgr8")
+    except CvBridge as e:
+        print (e)
+
     IMAGES = ["coral_past.jpg", "black_box.jpg", "coral_dmg_mid.jpg", "front_flip.jpg", "coral_underwater.jpg"]
 
     """ Step 0: Reading Image Inputs """
     old = coral_image(IMAGES_NEW[3], [30,50,50])
-    new = coral_image(__, [13,50,50])
+    new = coral_image(cv_bridge, [13,50,50])
 
     cv2.imshow("old_src", old.src)
     # cv2.imshow("new_src", new.src)
