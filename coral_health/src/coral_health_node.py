@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import cv2
 
 """ TO BE CHANGED ACCORDING TO DENNIS """
 # https://git.epoxsea.com/rov-2019/cannon_length/blob/master/src/nodes/cannon_length_node.py
@@ -23,7 +24,9 @@ sys.path.insert(0, parentdir)
 # importing the class definition
 from scripts.coral_health_program import coral_image
 
-""" PUT OLD OUTSIDE MAIN CALLBACK """
+""" Processing old image once """
+# old = coral_image("old_scaled40.jpg", [30,50,50], "/home/oscar/catkin_ws/src/coral_health/src/")
+# old.background_remover()
 
 # put main code under a func to be callback
 # rospy spin once
@@ -31,14 +34,15 @@ def main_callback(msg):
     print("looping in main_cb")
 
     """ Step 0: Reading Image Inputs """
-    old = coral_image("old_scaled40.jpg", [30,50,50], "/home/oscar/catkin_ws/src/coral_health/src/")
+    old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+    old = coral_image(old_src, [30,50,50])
 
     try:
         cv_image = bridge.imgmsg_to_cv2(msg.frame, "bgr8")
     except CvBridgeError as e:
         print(e)
 
-    new = coral_image(cv_image, [13,50,50], 0)
+    new = coral_image(cv_image, [13,50,50])
 
     cv2.imshow("old_src", old.src)
     rospy.loginfo("Images successfully read")

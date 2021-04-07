@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import rospy
-from cv_bridge import CvBridge, CvBridgeError
-
 import cv2
 import numpy as np
 
@@ -29,7 +27,12 @@ def closing(img, ksize=5):
 class coral_image():
 
     def __init__(self, img_src, tolerance_array):
-        self.src = cv2.imread(img_src)
+        
+        self.src = img_src
+        if self.src is None:
+            print("Unable to read image")
+            raise SystemExit
+
         self.hsv = cv2.cvtColor(self.src, cv2.COLOR_BGR2HSV)
 
         """ For Step 1: Background Removal """
@@ -148,6 +151,9 @@ class coral_image():
         cv2.waitKey(0)
         self.pink_mask = self.temp_mask
         # cv2.imshow("pink_mask", pink_mask)
+        if self.pink_mask is None:
+            # rospy.loginfo("MISSING PINK_MASK")
+            print("MISSING PINK_MASK")
 
         """ Generate white mask """
         print("CLICK ON WHITE PIXEL TO GET MASK FOR WHITE CORAL")
@@ -155,9 +161,15 @@ class coral_image():
         cv2.waitKey(0)
         self.white_mask = self.temp_mask
         # cv2.imshow("white_mask", white_mask)
+        if self.white_mask is None:
+            rospy.loginfo("MISSING WHITE_MASK")
+            print("MISSING WHITE_MASK")
 
         self.pink_white_mask = cv2.bitwise_or(self.pink_mask, self.white_mask)
         # cv2.imshow("combined_mask", pink_white_mask)
+        if self.pink_white_mask is None:
+            rospy.loginfo("MISSING PINK_WHITE_MASK")
+            print("MISSING PINK_WHITE_MASK")
 
         # return pink_white_mask
 
