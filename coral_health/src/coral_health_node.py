@@ -2,6 +2,8 @@
 
 import rospy
 import cv2
+from cv_bridge import CvBridge, CvBridgeError
+bridge = CvBridge()
 
 """ TO BE CHANGED ACCORDING TO DENNIS """
 # https://git.epoxsea.com/rov-2019/cannon_length/blob/master/src/nodes/cannon_length_node.py
@@ -12,30 +14,23 @@ from std_msgs.msg import Int16
 """ TEMP MINH CODE """
 from advtrn_msg.msg import VideoStream
 
-from cv_bridge import CvBridge, CvBridgeError
-bridge = CvBridge()
-
-# Setup proper filepaths
-import os, sys, inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-
-# importing the class definition
+# Import class definition from ./scripts/coral_health_program.py
 from scripts.coral_health_program import coral_image
 
 """ Processing old image once """
-# old = coral_image("old_scaled40.jpg", [30,50,50], "/home/oscar/catkin_ws/src/coral_health/src/")
-# old.background_remover()
+old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+old = coral_image(old_src, [30,50,50])
+old.background_remover()
+old.alignment()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
-# put main code under a func to be callback
-# rospy spin once
 def main_callback(msg):
     print("looping in main_cb")
 
     """ Step 0: Reading Image Inputs """
-    old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
-    old = coral_image(old_src, [30,50,50])
+    # old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+    # old = coral_image(old_src, [30,50,50])
 
     try:
         cv_image = bridge.imgmsg_to_cv2(msg.frame, "bgr8")
@@ -49,7 +44,7 @@ def main_callback(msg):
 
     """ Step 1: Background Removal """
 
-    old.background_remover()
+    # old.background_remover()
     new.background_remover()
 
     cv2.imshow("Old Mask in Main...", old.pink_white_mask)
@@ -64,9 +59,9 @@ def main_callback(msg):
 
     """ Step 2: Alignment of the two images """
 
-    old.alignment()
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # old.alignment()
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
     new.alignment()
     cv2.waitKey(0)
