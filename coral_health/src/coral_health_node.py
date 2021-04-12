@@ -102,8 +102,8 @@ def main():
     pw_hsv_arr = None
 
     """ temporarily working with Minhs code"""
-    rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback, callback_args=[old])
-    # rospy.Subscriber("camera/Coral_Image", compressed, main_callback)
+    # rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback, callback_args=[old])
+    rospy.Subscriber("camera/Coral_Image", CompressedImage, main_callback)
     print("After subscribing")
 
     while not rospy.is_shutdown():
