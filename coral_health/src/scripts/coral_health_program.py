@@ -82,9 +82,9 @@ class coral_image():
             sat = int(hsv_val[1])
             val = int(hsv_val[2])
 
-            pixel_preview = np.zeros((150,150,3), dtype=np.uint8)
-            cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
-            cv2.imshow("Pixel Preview in HSV", pixel_preview)
+            # pixel_preview = np.zeros((150,150,3), dtype=np.uint8)
+            # cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
+            # cv2.imshow("Pixel Preview in HSV", pixel_preview)
 
             # coor_string = str(x) + ',' + str(y)
             # hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
@@ -150,10 +150,10 @@ class coral_image():
 
 
     """ MAIN FUNCTIONS """
-    def background_remover(self, hasPredeterminedHSV, pw_hsv_arr=None):
+    def background_remover(self, hasPredeterminedHSV, pw_hsv_arr=None, waitKeyTime=0):
 
         if (hasPredeterminedHSV == True):
-            print("TRUE UPPERLOWERHSV")
+            # print("TRUE UPPERLOWERHSV")
 
             pink_lower = pw_hsv_arr[0]
             pink_upper = pw_hsv_arr[1]
@@ -167,10 +167,9 @@ class coral_image():
             return None
 
         elif (hasPredeterminedHSV == False):
-            """ ONLY FOR FIRST TIME GETTING HSV """
             print("FIRST TIME GETTING HSV")
 
-            cv2.namedWindow("Pixel Preview in HSV")
+            # cv2.namedWindow("Pixel Preview in HSV")
             cv2.namedWindow("Trackbar_Window")
             cv2.createTrackbar("hue_track", "Trackbar_Window", self.hue_tolerance, 180, cb_nothing)
             cv2.createTrackbar("sat_track", "Trackbar_Window", self.sat_tolerance, 255, cb_nothing)
@@ -181,7 +180,7 @@ class coral_image():
             """ Generate pink mask """
             print("CLICK ON PINK PIXEL TO GET MASK FOR PINK CORAL")
             cv2.setMouseCallback('hsv', self.click_event, [self.hsv, 'p'])
-            cv2.waitKey(0)
+            cv2.waitKey(waitKeyTime)
             self.pink_mask = self.temp_mask
             # cv2.imshow("pink_mask", pink_mask)
             if self.pink_mask is None:
@@ -191,7 +190,7 @@ class coral_image():
             """ Generate white mask """
             print("CLICK ON WHITE PIXEL TO GET MASK FOR WHITE CORAL")
             cv2.setMouseCallback('hsv', self.click_event, [self.hsv, 'w'])
-            cv2.waitKey(0)
+            cv2.waitKey(waitKeyTime)
             self.white_mask = self.temp_mask
             # cv2.imshow("white_mask", white_mask)
             if self.white_mask is None:
@@ -204,6 +203,7 @@ class coral_image():
                 # rospy.loginfo("MISSING PINK_WHITE_MASK")
                 print("MISSING PINK_WHITE_MASK")
 
+            cv2.destroyAllWindows()
             return self.pink_lower, self.pink_upper, self.white_lower, self.white_upper
 
     def alignment(self, EXTEND_DIMENSION = 0.05):

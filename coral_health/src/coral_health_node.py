@@ -105,7 +105,7 @@ def main():
 
     """ temporarily working with Minhs code"""
     # rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback, callback_args=[old])
-    rospy.Subscriber("camera/Coral_Image", CompressedImage, main_callback)
+    rospy.Subscriber("camera/Coral_image/compressed", CompressedImage, main_callback, callback_args=[old])
     print("After subscribing")
 
     while not rospy.is_shutdown():
