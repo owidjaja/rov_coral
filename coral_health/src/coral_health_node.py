@@ -5,10 +5,8 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 bridge = CvBridge()
 
-""" TO BE CHANGED ACCORDING TO DENNIS """
-# https://git.epoxsea.com/rov-2019/cannon_length/blob/master/src/nodes/cannon_length_node.py
+""" DENNIS """
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import Int16
 # from rov_messages.msg import __
 
 """ TEMP MINH CODE """
@@ -17,16 +15,14 @@ from advtrn_msg.msg import VideoStream
 # Import class definition from ./scripts/coral_health_program.py
 from scripts.coral_health_program import coral_image
 
-""" Processing old image once """
-old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
-old = coral_image(old_src, [30,50,50])
-old.background_remover()
-old.alignment()
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
 def main_callback(msg):
-    print("looping in main_cb")
+    frame_number = msg.frame_number.data    # dependent on advtrn_msg::VideoStream
+    rospy.loginfo("Received frame number: {}".format(frame_number))
+
+    # Only process every 10 image
+    if (frame_number % 10 != 0):
+        return
+    rospy.loginfo("Processing frame number: {}".format(frame_number))
 
     """ Step 0: Reading Image Inputs """
     # old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
@@ -81,9 +77,19 @@ def main():
     rospy.init_node("coral_health_node", anonymous=False)
     rospy.loginfo("coral_health_node initialized")
 
+    """ Processing old image once """
+    old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+    old = coral_image(old_src, [30,50,50])
+    old.background_remover()
+    old.alignment()
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
     """ temporarily working with Minhs code"""
-    rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback)
+    rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback, callback_args=[old])
+    # rospy.Subscriber("camera/Coral_Image", compressed, main_callback)
     print("After subscribing")
+
 
     while not rospy.is_shutdown():
         try:
