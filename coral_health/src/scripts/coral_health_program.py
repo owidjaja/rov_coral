@@ -41,6 +41,11 @@ class coral_image():
         self.val_tolerance = tolerance_array[2]
         self.adjusting = False
 
+        self.pink_upper  = np.array([180,255,255])
+        self.pink_lower  = np.array([0,0,0])
+        self.white_upper = np.array([180,255,255])
+        self.white_lower = np.array([0,0,0])
+
         self.temp_mask = np.zeros((0,0), dtype=np.uint8)
         self.pink_mask = self.temp_mask
         self.white_mask = self.temp_mask
@@ -56,10 +61,13 @@ class coral_image():
         cv2.waitKey(0)
         cv2.destroyWindow("src")
 
-    def click_event(self, event, x, y, flags, img):
+    def click_event(self, event, x, y, flags, param):
         # https://docs.opencv.org/master/db/d5b/tutorial_py_mouse_handling.html
         """ Left click on image in hsv window to inspect a pixel once
             Right click to inspect pixels as you move cursor """
+
+        img = param[0]
+        pink_or_white_flag = param[1]
 
         # adjusting = self.adjusting
         # temp_mask = self.temp_mask
@@ -97,10 +105,17 @@ class coral_image():
             lower =  np.array([hue_lower, sat_lower, val_lower])
             print(lower, upper, '\n')
 
-            self.temp_mask = cv2.inRange(img,lower,upper)
+            self.temp_mask = cv2.inRange(img, lower, upper)
             cv2.imshow("temp_mask", self.temp_mask)
 
             cv2.imshow("hsv", img)
+
+            if (pink_or_white_flag == 'p'):
+                self.pink_upper = upper
+                self.pink_lower = lower
+            elif (pink_or_white_flag == 'w'):
+                self.white_upper = upper
+                self.white_lower = lower
 
             # cv2.waitKey(0)
             # cv2.destroyAllWindows()
@@ -135,44 +150,61 @@ class coral_image():
 
 
     """ MAIN FUNCTIONS """
-    def background_remover(self):
+    def background_remover(self, hasPredeterminedHSV, pw_hsv_arr=None):
 
-        cv2.namedWindow("Pixel Preview in HSV")
-        cv2.namedWindow("Trackbar_Window")
-        cv2.createTrackbar("hue_track", "Trackbar_Window", self.hue_tolerance, 180, cb_nothing)
-        cv2.createTrackbar("sat_track", "Trackbar_Window", self.sat_tolerance, 255, cb_nothing)
-        cv2.createTrackbar("val_track", "Trackbar_Window", self.val_tolerance, 255, cb_nothing)
+        if (hasPredeterminedHSV == True):
+            print("TRUE UPPERLOWERHSV")
 
-        cv2.imshow("hsv", self.hsv)
+            pink_lower = pw_hsv_arr[0]
+            pink_upper = pw_hsv_arr[1]
+            white_lower= pw_hsv_arr[2]
+            white_upper= pw_hsv_arr[3]
 
-        """ Generate pink mask """
-        print("CLICK ON PINK PIXEL TO GET MASK FOR PINK CORAL")
-        cv2.setMouseCallback('hsv', self.click_event, self.hsv)
-        cv2.waitKey(0)
-        self.pink_mask = self.temp_mask
-        # cv2.imshow("pink_mask", pink_mask)
-        if self.pink_mask is None:
-            # rospy.loginfo("MISSING PINK_MASK")
-            print("MISSING PINK_MASK")
+            self.pink_mask = cv2.inRange(self.hsv, pink_lower, pink_upper)
+            self.white_mask = cv2.inRange(self.hsv, white_lower, white_upper)
+            self.pink_white_mask = cv2.bitwise_or(self.pink_mask, self.white_mask)
 
-        """ Generate white mask """
-        print("CLICK ON WHITE PIXEL TO GET MASK FOR WHITE CORAL")
-        cv2.setMouseCallback('hsv', self.click_event, self.hsv)
-        cv2.waitKey(0)
-        self.white_mask = self.temp_mask
-        # cv2.imshow("white_mask", white_mask)
-        if self.white_mask is None:
-            rospy.loginfo("MISSING WHITE_MASK")
-            print("MISSING WHITE_MASK")
+            return None
 
-        self.pink_white_mask = cv2.bitwise_or(self.pink_mask, self.white_mask)
-        # cv2.imshow("combined_mask", pink_white_mask)
-        if self.pink_white_mask is None:
-            rospy.loginfo("MISSING PINK_WHITE_MASK")
-            print("MISSING PINK_WHITE_MASK")
+        elif (hasPredeterminedHSV == False):
+            """ ONLY FOR FIRST TIME GETTING HSV """
+            print("FIRST TIME GETTING HSV")
 
-        # return pink_white_mask
+            cv2.namedWindow("Pixel Preview in HSV")
+            cv2.namedWindow("Trackbar_Window")
+            cv2.createTrackbar("hue_track", "Trackbar_Window", self.hue_tolerance, 180, cb_nothing)
+            cv2.createTrackbar("sat_track", "Trackbar_Window", self.sat_tolerance, 255, cb_nothing)
+            cv2.createTrackbar("val_track", "Trackbar_Window", self.val_tolerance, 255, cb_nothing)
 
+            cv2.imshow("hsv", self.hsv)
+
+            """ Generate pink mask """
+            print("CLICK ON PINK PIXEL TO GET MASK FOR PINK CORAL")
+            cv2.setMouseCallback('hsv', self.click_event, [self.hsv, 'p'])
+            cv2.waitKey(0)
+            self.pink_mask = self.temp_mask
+            # cv2.imshow("pink_mask", pink_mask)
+            if self.pink_mask is None:
+                # rospy.loginfo("MISSING PINK_MASK")
+                print("MISSING PINK_MASK")
+
+            """ Generate white mask """
+            print("CLICK ON WHITE PIXEL TO GET MASK FOR WHITE CORAL")
+            cv2.setMouseCallback('hsv', self.click_event, [self.hsv, 'w'])
+            cv2.waitKey(0)
+            self.white_mask = self.temp_mask
+            # cv2.imshow("white_mask", white_mask)
+            if self.white_mask is None:
+                # rospy.loginfo("MISSING WHITE_MASK")
+                print("MISSING WHITE_MASK")
+                
+            self.pink_white_mask = cv2.bitwise_or(self.pink_mask, self.white_mask)
+            cv2.imshow("combined_mask", self.pink_white_mask)
+            if self.pink_white_mask is None:
+                # rospy.loginfo("MISSING PINK_WHITE_MASK")
+                print("MISSING PINK_WHITE_MASK")
+
+            return self.pink_lower, self.pink_upper, self.white_lower, self.white_upper
 
     def alignment(self, EXTEND_DIMENSION = 0.05):
 

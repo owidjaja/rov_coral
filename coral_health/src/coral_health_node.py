@@ -15,7 +15,14 @@ from advtrn_msg.msg import VideoStream
 # Import class definition from ./scripts/coral_health_program.py
 from scripts.coral_health_program import coral_image
 
-def main_callback(msg):
+first_new = True
+pw_hsv_arr = None
+
+def main_callback(msg, callback_args):
+    global first_new, pw_hsv_arr
+
+    old = callback_args[0]
+
     frame_number = msg.frame_number.data    # dependent on advtrn_msg::VideoStream
     rospy.loginfo("Received frame number: {}".format(frame_number))
 
@@ -40,8 +47,14 @@ def main_callback(msg):
 
     """ Step 1: Background Removal """
 
+    print("HERE FIRST_NEW IS {}".format(first_new))
     # old.background_remover()
-    new.background_remover()
+    if (first_new == True):
+        pw_hsv_arr = new.background_remover(False)
+        first_new = False
+    else:
+        print("HAS HSV ALREADY")
+        _ = new.background_remover(True, pw_hsv_arr)
 
     cv2.imshow("Old Mask in Main...", old.pink_white_mask)
     cv2.imshow("New Mask in Main...", new.pink_white_mask)
@@ -80,16 +93,18 @@ def main():
     """ Processing old image once """
     old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
     old = coral_image(old_src, [30,50,50])
-    old.background_remover()
+    old.background_remover(False)
     old.alignment()
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    first_new = True
+    pw_hsv_arr = None
 
     """ temporarily working with Minhs code"""
     rospy.Subscriber("advtrn/VideoStream", VideoStream, main_callback, callback_args=[old])
     # rospy.Subscriber("camera/Coral_Image", compressed, main_callback)
     print("After subscribing")
-
 
     while not rospy.is_shutdown():
         try:
