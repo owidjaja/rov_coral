@@ -22,6 +22,9 @@ def main_callback(msg, callback_args):
     frame_number = cb_index
     frame = msg     # for compressedImage
 
+    if cb_index % 2:
+        return
+
     rospy.loginfo("Received frame number: {}".format(frame_number))
 
     """ Step 0: Reading Image Inputs """
@@ -70,13 +73,15 @@ def main():
     old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
     if old_src is None:
         old_src = cv2.imread("/home/hammerhead/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
+    if old_src is None:
+        old_src = cv2.imread("/home/vmdang/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
     old = coral_image(old_src, [30,50,50])
     # old.background_remover(False, waitKeyTime)
     # old.alignment()
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
 
-    result_publisher = rospy.Publisher("/coral/result", CompressedImage, queue_size = 10)
+    result_publisher = rospy.Publisher("/coral/result", CompressedImage, queue_size = 5)
     rospy.Subscriber("camera/Coral_image/compressed", CompressedImage, main_callback, callback_args=[old, result_publisher])
 
     while not rospy.is_shutdown():
