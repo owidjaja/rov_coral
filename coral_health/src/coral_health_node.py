@@ -90,8 +90,10 @@ def main():
     rospy.init_node("coral_health_node", anonymous=False)
     rospy.loginfo("coral_health_node initialized")
 
-    """ Processing old image once """
+    """ TODO: CHANGE ABSOLUTE PATH ACCORDING TO CONTROL BOX """
     old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+    if old_src is None:
+        old_src = cv2.imread("/")
     old = coral_image(old_src, [30,50,50])
     old.background_remover(False)
     old.alignment()
