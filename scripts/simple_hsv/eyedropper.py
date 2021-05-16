@@ -1,6 +1,17 @@
 import cv2
 import numpy as np
 
+def scale_resizing(img, scale):
+    print("Original Dimension: ", img.shape)
+
+    width = int(img.shape[1] * (scale/100))
+    height= int(img.shape[0] * (scale/100))
+    dim = (width, height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+    print("Resized Dimension: ", resized.shape)
+    return resized
+
 def cb_nothing(x):
     # print(x)
     pass
@@ -84,7 +95,7 @@ IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "c
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("../res/coral_under1.jpg")
+    src = cv2.imread("../res/coral_under3.jpg")
     # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
@@ -123,4 +134,5 @@ if __name__ == "__main__":
     cv2.imshow("combined_mask", pw_mask)
 
     cv2.waitKey(0)
+    cv2.imwrite("coral_mask.jpg", pw_mask)
     cv2.destroyAllWindows()
