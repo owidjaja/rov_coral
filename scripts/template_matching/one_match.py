@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 # template = cv2.imread('intersection_pink_right.jpg',0)
 
 img = cv2.imread('coral_under2.jpg', 0)
-template = cv2.imread('pink_right_water.jpg', 0)
+template = cv2.imread('pink-removebg-preview_1_40x51.png', 0)
 if img is None or template is None:
     exit("ERROR: failed to read images")
 
@@ -34,9 +34,11 @@ for meth in methods:
 
     cv2.rectangle(img,top_left, bottom_right, 255, 2)
     
-    plt.subplot(121),plt.imshow(res,cmap = 'gray')
+    plt.subplot(131), plt.imshow(template, cmap='gray')
+    plt.title('Template'), plt.xticks([]), plt.yticks([])
+    plt.subplot(132),plt.imshow(res,cmap = 'gray')
     plt.title('Matching Result'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(img,cmap = 'gray')
+    plt.subplot(133),plt.imshow(img,cmap = 'gray')
     plt.title('Detected Point'), plt.xticks([]), plt.yticks([])
     plt.suptitle(meth)
     plt.show()
