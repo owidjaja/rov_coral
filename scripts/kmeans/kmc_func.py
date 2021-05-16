@@ -46,7 +46,7 @@ def kmc_color_quantization(src, K, bgr_or_hsv = 'b', plot_graph = False):
 
 # main
 
-img = cv2.imread("kmc_test1.jpg")
+img = cv2.imread("../res/contrast_coral.jpg")
 plt.subplot(241), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)), plt.title("Input")
 
 K = 3
@@ -62,6 +62,7 @@ res3 = kmc_color_quantization(img, K)
 plt.subplot(244), plt.imshow(cv2.cvtColor(res3, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
 
 """ HSV """
+hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 plt.subplot(245), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2HSV)), plt.title("HSV shown in RGB")
 

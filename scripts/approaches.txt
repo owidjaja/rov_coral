@@ -1,0 +1,4 @@
+contrast then k means -> result just the same
+	look into the kmeans code
+
+kmeans and then subtract background
