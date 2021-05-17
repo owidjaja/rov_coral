@@ -19,4 +19,8 @@ integrate into one program
 
 use cv2.imread_grayscale when reading images
 
-->>  	fix the for loop
+# TODO
+->>		fix the for loop
+->>		use hsv
+->>		try eyedrop
+->>		add trackbar for hsv in range

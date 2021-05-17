@@ -17,10 +17,10 @@ def kmc_color_quantization(src, K, bgr_or_hsv = 'b', plot_graph = False):
     # define criteria, number of clusters(K) and apply kmeans()
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     ret,label,center=cv2.kmeans(Z,K,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
-    print("K=", K)
-    print("Compactness=", ret)
-    print(len(label), "Labels=", label)
-    print(len(center), "Centers=", center)
+    # print("K=", K)
+    # print("Compactness=", ret)
+    # print(len(label), "Labels=", label)
+    # print(len(center), "Centers=", center)
 
     # Now convert back into uint8, and make original image
     center = np.uint8(center)
