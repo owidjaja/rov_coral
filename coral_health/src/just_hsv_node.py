@@ -70,12 +70,14 @@ def main():
     rospy.loginfo("just_hsv_node initialized")
 
     """ TODO: CHANGE ABSOLUTE PATH ACCORDING TO CONTROL BOX """
-    old_src = cv2.imread("/home/oscar/catkin_ws/src/coral_health/src/old_scaled40.jpg")
+    path_old_src = "../resources/old_scaled40.jpg"
+    old_src = cv2.imread(path_old_src)
     if old_src is None:
-        old_src = cv2.imread("/home/hammerhead/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
-    if old_src is None:
-        old_src = cv2.imread("/home/vmdang/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
-    old = coral_image(old_src, [30,50,50])
+        rospy.signal_shutdown("ERROR: failed to read reference image: {}".format(path_old_src))
+    #     old_src = cv2.imread("/home/hammerhead/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
+    # if old_src is None:
+    #     old_src = cv2.imread("/home/vmdang/catkin_ws/src/coral_health/resources/old_scaled40.jpg")
+    # old = coral_image(old_src, [30,50,50])
     # old.background_remover(False, waitKeyTime)
     # old.alignment()
     # cv2.waitKey(0)

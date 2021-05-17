@@ -130,9 +130,12 @@ if __name__ == "__main__":
     cv2.imshow("white_mask", white_mask)
     cv2.destroyWindow("temp_mask")
 
+    if pink_mask is None or white_mask is None:
+        exit("ERROR: mask empty")
     pw_mask = cv2.bitwise_or(pink_mask, white_mask)
     cv2.imshow("combined_mask", pw_mask)
 
     cv2.waitKey(0)
-    cv2.imwrite("coral_mask.jpg", pw_mask)
+    # cv2.imwrite("coral_mask.jpg", pw_mask)
+    print(pw_mask.shape)
     cv2.destroyAllWindows()

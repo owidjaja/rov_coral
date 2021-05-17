@@ -17,6 +17,10 @@ def kmc_color_quantization(src, K, bgr_or_hsv = 'b', plot_graph = False):
     # define criteria, number of clusters(K) and apply kmeans()
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
     ret,label,center=cv2.kmeans(Z,K,None,criteria,10,cv2.KMEANS_RANDOM_CENTERS)
+    print("K=", K)
+    print("Compactness=", ret)
+    print(len(label), "Labels=", label)
+    print(len(center), "Centers=", center)
 
     # Now convert back into uint8, and make original image
     center = np.uint8(center)
@@ -43,40 +47,35 @@ def kmc_color_quantization(src, K, bgr_or_hsv = 'b', plot_graph = False):
 
     return res2
     
+K = [3,4,5]
 
 # main
 
-img = cv2.imread("../res/contrast_coral.jpg")
+img = cv2.imread("../res/out_rect.jpg")
 plt.subplot(241), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)), plt.title("Input")
 
-K = 3
-res1 = kmc_color_quantization(img, K)
-plt.subplot(242), plt.imshow(cv2.cvtColor(res1, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res1 = kmc_color_quantization(img, K[0])
+plt.subplot(242), plt.imshow(cv2.cvtColor(res1, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[0]))
 
-K = 5
-res2 = kmc_color_quantization(img, K)
-plt.subplot(243), plt.imshow(cv2.cvtColor(res2, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res2 = kmc_color_quantization(img, K[1])
+plt.subplot(243), plt.imshow(cv2.cvtColor(res2, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[1]))
 
-K = 10
-res3 = kmc_color_quantization(img, K)
-plt.subplot(244), plt.imshow(cv2.cvtColor(res3, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res3 = kmc_color_quantization(img, K[2])
+plt.subplot(244), plt.imshow(cv2.cvtColor(res3, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[2]))
 
 """ HSV """
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 plt.subplot(245), plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2HSV)), plt.title("HSV shown in RGB")
 
-K = 3
-res1 = kmc_color_quantization(img, K, bgr_or_hsv='h')
-plt.subplot(246), plt.imshow(cv2.cvtColor(res1, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res1 = kmc_color_quantization(img, K[0], bgr_or_hsv='h')
+plt.subplot(246), plt.imshow(cv2.cvtColor(res1, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[0]))
 
-K = 5
-res2 = kmc_color_quantization(img, K, bgr_or_hsv='h')
-plt.subplot(247), plt.imshow(cv2.cvtColor(res2, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res2 = kmc_color_quantization(img, K[1], bgr_or_hsv='h')
+plt.subplot(247), plt.imshow(cv2.cvtColor(res2, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[1]))
 
-K = 10
-res3 = kmc_color_quantization(img, K, bgr_or_hsv='h')
-plt.subplot(248), plt.imshow(cv2.cvtColor(res3, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K))
+res3 = kmc_color_quantization(img, K[2], bgr_or_hsv='h')
+plt.subplot(248), plt.imshow(cv2.cvtColor(res3, cv2.COLOR_BGR2RGB)), plt.title("K={}".format(K[2]))
 
 plt.tight_layout()
 plt.show()

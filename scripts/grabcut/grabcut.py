@@ -99,7 +99,7 @@ class App():
         else:
             print("No input image given, so loading default image, lena.jpg \n")
             print("Correct Usage: python grabcut.py <filename> \n")
-            filename = 'lena.jpg'
+            filename = 'coral_under3.JPG'
 
         self.img = cv.imread(cv.samples.findFile(filename))
         self.img2 = self.img.copy()                               # a copy of original image
