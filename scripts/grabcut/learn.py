@@ -20,6 +20,9 @@ image = cv2.imread("coral_mask.jpg")
 window_name = 'Image'
 print(image.shape)
 
+mask = np.zeros(image.shape[:2], dtype = np.uint8)
+print(mask.shape)
+
 center_coordinates = (300, 500)
 radius = 20
 color = (255, 0, 0)

@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-from numpy.lib.type_check import _imag_dispatcher
 
 img_drawrect = cv2.imread("edited_src.jpg")
 
