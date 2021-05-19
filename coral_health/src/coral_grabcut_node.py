@@ -8,7 +8,8 @@ bridge = CvBridge()
 
 from sensor_msgs.msg import CompressedImage
 
-# Import class definition from ./scripts/coral_health_program.py
+# Import class definitions from ./scripts/coral_health_program.py
+# from srcipts.minh_machinelearning import yolo / rect_generator
 from scripts.coral_grabcut_program import coral_grabcut
 
 cb_index = 0
@@ -18,6 +19,9 @@ def main_callback(msg, callback_args):
     cb_index += 1
     frame_number = cb_index
     frame = msg                 # for compressedImage to be published
+
+    if cb_index%5 != 0:
+        return
 
     rospy.loginfo("Received frame number: {}".format(frame_number))
 
@@ -29,8 +33,9 @@ def main_callback(msg, callback_args):
         print(e)
 
     """ Step 1: Background Removal with Grabcut """
-
-    new_coral = coral_grabcut(cv_image)
+    # TODO: 
+    rect_coordinates = yolo(cv_image)
+    new_coral = coral_grabcut(cv_image, rect_coordinates)
     grabcut_output = new_coral.grabcut()
 
     cv2.imshow("Orig Video Feed", cv_image)

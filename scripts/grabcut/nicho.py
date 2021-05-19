@@ -30,15 +30,8 @@ class App():
         cv.namedWindow('output')
         cv.namedWindow('input')
         cv.moveWindow('input', self.img.shape[1]+10,90)
-        cv.imshow('input', self.img)
 
         cv.rectangle(self.img, (self.width//4, self.height//8), (3*self.width//4, 7*self.height//8), [255,0,0], thickness=5)
-
-        k = cv.waitKey(1)
-
-        # key bindings
-        if k == 27:         # esc to exit
-            exit()
             
         try:
             bgdmodel = np.zeros((1, 65), np.float64)
@@ -53,6 +46,7 @@ class App():
         mask2 = np.where((self.mask==1) + (self.mask==3), 255, 0).astype('uint8')
         self.output = cv.bitwise_and(self.img2, self.img2, mask=mask2)
 
+        cv.imshow('input', self.img)
         cv.imshow('output', self.output)
 
         print('Done')
@@ -77,7 +71,7 @@ if __name__ == '__main__':
 
         grabcutter.run(frame)
 
-        if cv.waitKey(5000) == ord('q'):
+        if cv.waitKey(1000) == ord('q'):
             break
 
     print("Terminating program...")
