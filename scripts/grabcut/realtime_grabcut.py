@@ -61,7 +61,7 @@ if __name__ == '__main__':
         exit("ERROR: Failed to open camera")
 
     while True:
-        print("new iter in outer while loop in main")
+        # print("new iter in outer while loop in main")
         ret, frame = cap.read()
         if not ret:
             print("ERROR: Failed to capture frame")
