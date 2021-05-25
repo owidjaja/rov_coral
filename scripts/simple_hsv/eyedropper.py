@@ -48,51 +48,47 @@ def click_event(event, x, y, flags, param):
     # https://docs.opencv.org/master/db/d5b/tutorial_py_mouse_handling.html
     """ Left click on image in hsv window to inspect a pixel once
         Right click to inspect pixels as you move cursor """
-    global adjusting, temp_mask
-
-    img = param
+    global adjusting, px_x, px_y
 
     if event==cv2.EVENT_RBUTTONDOWN:
         adjusting = not adjusting
 
     elif event==cv2.EVENT_LBUTTONDOWN or (event==cv2.EVENT_MOUSEMOVE and adjusting==True):
-        hsv_val = img[y,x]
-        # print("Actual HSV Values:", hsv_val)
-        hue = int(hsv_val[0])
-        sat = int(hsv_val[1])
-        val = int(hsv_val[2])
+        px_x, px_y = x, y
+        pass
 
-        pixel_preview = np.zeros((150,150,3), dtype=np.uint8)
-        cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
-        cv2.imshow("Pixel Preview in HSV", pixel_preview)
+def generate_mask(img, x, y):
+    hsv_val = img[y,x]
+    # print("Actual HSV Values:", hsv_val)
+    hue = int(hsv_val[0])
+    sat = int(hsv_val[1])
+    val = int(hsv_val[2])
 
-        # coor_string = str(x) + ',' + str(y)
-        # hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
-        # cv2.putText(img, hsv_val_string, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1)
+    # pixel_preview = np.zeros((150,150,3), dtype=np.uint8)
+    # cv2.rectangle(pixel_preview, (0,0), (150,150), [hue,sat,val], -1)
+    # cv2.imshow("Pixel Preview in HSV", pixel_preview)
 
-        while (True):
-            HUE_TOLERANCE = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
-            SAT_TOLERANCE = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
-            VAL_TOLERANCE = cv2.getTrackbarPos("val_track", "Trackbar_Window")
+    # coor_string = str(x) + ',' + str(y)
+    # hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
+    # cv2.putText(img, hsv_val_string, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1)
 
-            hue_upper = extend_range(hue, 1, 'u', HUE_TOLERANCE)
-            hue_lower = extend_range(hue, 1, 'l', HUE_TOLERANCE)
-            sat_upper = extend_range(sat, 0, 'u', SAT_TOLERANCE)
-            sat_lower = extend_range(sat, 0, 'l', SAT_TOLERANCE)
-            val_upper = extend_range(val, 0, 'u', VAL_TOLERANCE)
-            val_lower = extend_range(val, 0, 'l', VAL_TOLERANCE)
+    HUE_TOLERANCE = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
+    SAT_TOLERANCE = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
+    VAL_TOLERANCE = cv2.getTrackbarPos("val_track", "Trackbar_Window")
 
-            upper =  np.array([hue_upper, sat_upper, val_upper])
-            lower =  np.array([hue_lower, sat_lower, val_lower])
-            # print(lower, upper, '\n')
+    hue_upper = extend_range(hue, 1, 'u', HUE_TOLERANCE)
+    hue_lower = extend_range(hue, 1, 'l', HUE_TOLERANCE)
+    sat_upper = extend_range(sat, 0, 'u', SAT_TOLERANCE)
+    sat_lower = extend_range(sat, 0, 'l', SAT_TOLERANCE)
+    val_upper = extend_range(val, 0, 'u', VAL_TOLERANCE)
+    val_lower = extend_range(val, 0, 'l', VAL_TOLERANCE)
 
-            temp_mask = cv2.inRange(img,lower,upper)
-            cv2.imshow("temp_mask",temp_mask)
+    upper =  np.array([hue_upper, sat_upper, val_upper])
+    lower =  np.array([hue_lower, sat_lower, val_lower])
+    # print(lower, upper, '\n')
 
-            cv2.imshow("hsv", img)
+    return cv2.inRange(img,lower,upper)
 
-            if cv2.waitKey(1)==27:  # esc key
-                break
 
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
@@ -106,7 +102,7 @@ if __name__ == "__main__":
     hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
     cv2.imshow("hsv", hsv)
 
-    cv2.namedWindow("Pixel Preview in HSV")
+    # cv2.namedWindow("Pixel Preview in HSV")
     # cv2.resizeWindow("Pixel Preview in HSV", 300, 300)
 
     cv2.namedWindow("Trackbar_Window")
@@ -116,23 +112,27 @@ if __name__ == "__main__":
 
     """ Initializing global variables to be used in pink and white mask generation """
     adjusting = False # true if right clicked
-    temp_mask = np.zeros((2,2), dtype=np.uint8)
+    px_x, px_y = 0, 0
 
     """ Generate pink mask """
     print("Working on pink mask...")
-    cv2.setMouseCallback('hsv', click_event, hsv)
-    cv2.waitKey(0)
-    pink_mask = temp_mask
-    cv2.imshow("pink_mask", pink_mask)
-    cv2.destroyWindow("temp_mask")
+    while (True):
+        cv2.setMouseCallback('hsv', click_event, hsv)
+        pink_mask = generate_mask(hsv, px_x, px_y)
+        cv2.imshow("pink_mask", pink_mask)
+        if cv2.waitKey(1) == 27:
+            break
+    cv2.destroyWindow("pink_mask")
 
     """ Generate white mask """
     print("Working on white mask...")
-    cv2.setMouseCallback('hsv', click_event, hsv)
-    cv2.waitKey(0)
-    white_mask = temp_mask
-    cv2.imshow("white_mask", white_mask)
-    cv2.destroyWindow("temp_mask")
+    while (True):
+        cv2.setMouseCallback('hsv', click_event, hsv)
+        white_mask = generate_mask(hsv, px_x, px_y)
+        cv2.imshow("white_mask", white_mask)
+        if cv2.waitKey(1) == 27:
+            break
+    cv2.destroyWindow("white_mask")
 
     if pink_mask is None or white_mask is None:
         exit("ERROR: mask empty")
