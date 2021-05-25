@@ -57,7 +57,7 @@ def click_event(event, x, y, flags, param):
 
     elif event==cv2.EVENT_LBUTTONDOWN or (event==cv2.EVENT_MOUSEMOVE and adjusting==True):
         hsv_val = img[y,x]
-        print("Actual HSV Values:", hsv_val)
+        # print("Actual HSV Values:", hsv_val)
         hue = int(hsv_val[0])
         sat = int(hsv_val[1])
         val = int(hsv_val[2])
@@ -70,27 +70,29 @@ def click_event(event, x, y, flags, param):
         # hsv_val_string = "[{}, {}, {}]".format(hsv_val[0],hsv_val[1],hsv_val[2])
         # cv2.putText(img, hsv_val_string, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 1)
 
-        HUE_TOLERANCE = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
-        SAT_TOLERANCE = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
-        VAL_TOLERANCE = cv2.getTrackbarPos("val_track", "Trackbar_Window")
+        while (True):
+            HUE_TOLERANCE = cv2.getTrackbarPos("hue_track", "Trackbar_Window")
+            SAT_TOLERANCE = cv2.getTrackbarPos("sat_track", "Trackbar_Window")
+            VAL_TOLERANCE = cv2.getTrackbarPos("val_track", "Trackbar_Window")
 
-        hue_upper = extend_range(hue, 1, 'u', HUE_TOLERANCE)
-        hue_lower = extend_range(hue, 1, 'l', HUE_TOLERANCE)
-        sat_upper = extend_range(sat, 0, 'u', SAT_TOLERANCE)
-        sat_lower = extend_range(sat, 0, 'l', SAT_TOLERANCE)
-        val_upper = extend_range(val, 0, 'u', VAL_TOLERANCE)
-        val_lower = extend_range(val, 0, 'l', VAL_TOLERANCE)
+            hue_upper = extend_range(hue, 1, 'u', HUE_TOLERANCE)
+            hue_lower = extend_range(hue, 1, 'l', HUE_TOLERANCE)
+            sat_upper = extend_range(sat, 0, 'u', SAT_TOLERANCE)
+            sat_lower = extend_range(sat, 0, 'l', SAT_TOLERANCE)
+            val_upper = extend_range(val, 0, 'u', VAL_TOLERANCE)
+            val_lower = extend_range(val, 0, 'l', VAL_TOLERANCE)
 
-        upper =  np.array([hue_upper, sat_upper, val_upper])
-        lower =  np.array([hue_lower, sat_lower, val_lower])
-        print(lower, upper, '\n')
+            upper =  np.array([hue_upper, sat_upper, val_upper])
+            lower =  np.array([hue_lower, sat_lower, val_lower])
+            # print(lower, upper, '\n')
 
-        temp_mask = cv2.inRange(img,lower,upper)
-        cv2.imshow("temp_mask",temp_mask)
+            temp_mask = cv2.inRange(img,lower,upper)
+            cv2.imshow("temp_mask",temp_mask)
 
-        cv2.imshow("hsv", img)
+            cv2.imshow("hsv", img)
 
-IMAGES = ["coral_past.jpg", "black_box.jpg", "front1.jpeg", "front_flip.jpg", "coral_underwater.jpg", "coral_dmg_left.jpg"]
+            if cv2.waitKey(1)==27:  # esc key
+                break
 
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
@@ -117,6 +119,7 @@ if __name__ == "__main__":
     temp_mask = np.zeros((2,2), dtype=np.uint8)
 
     """ Generate pink mask """
+    print("Working on pink mask...")
     cv2.setMouseCallback('hsv', click_event, hsv)
     cv2.waitKey(0)
     pink_mask = temp_mask
@@ -124,6 +127,7 @@ if __name__ == "__main__":
     cv2.destroyWindow("temp_mask")
 
     """ Generate white mask """
+    print("Working on white mask...")
     cv2.setMouseCallback('hsv', click_event, hsv)
     cv2.waitKey(0)
     white_mask = temp_mask
@@ -135,7 +139,7 @@ if __name__ == "__main__":
     pw_mask = cv2.bitwise_or(pink_mask, white_mask)
     cv2.imshow("combined_mask", pw_mask)
 
-    cv2.waitKey(0)
-    # cv2.imwrite("coral_mask.jpg", pw_mask)
+    if cv2.waitKey(0) == 's':
+        cv2.imwrite("coral_mask.jpg", pw_mask)
     print(pw_mask.shape)
     cv2.destroyAllWindows()
