@@ -5,6 +5,7 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+import numpy as np
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -77,8 +78,10 @@ def detect(opt):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
+
         # Process detections
         for i, det in enumerate(pred):  # detections per image
+            black = np.zeros([480, 640, 3], dtype = np.uint8)
             if webcam:  # batch_size >= 1
                 p, s, im0, frame = path[i], f'{i}: ', im0s[i].copy(), dataset.count
             else:
@@ -111,6 +114,11 @@ def detect(opt):
                         c = int(cls)  # integer class
                         label = None if opt.hide_labels else (names[c] if opt.hide_conf else f'{names[c]} {conf:.2f}')
                         plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=opt.line_thickness)
+
+
+                        rect = [int(xyxy[i].item()) for i in range(len(xyxy))]
+                        cv2.rectangle(black, [rect[0], rect[1]], [rect[2], rect[3]], 255, 2)
+
                         if opt.save_crop:
                             save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
@@ -119,6 +127,7 @@ def detect(opt):
 
             # Stream results
             if view_img:
+                cv2.imshow("Anjing", black)
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
 
@@ -175,6 +184,8 @@ if __name__ == '__main__':
     opt = parser.parse_args()
     print(opt)
     check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))
+
+    cv2.namedWindow("Anjing")
 
     with torch.no_grad():
         if opt.update:  # update all models (to fix SourceChangeWarning)
