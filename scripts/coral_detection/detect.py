@@ -81,11 +81,14 @@ def detect(opt):
 
         # Process detections
         for i, det in enumerate(pred):  # detections per image
-            black = np.zeros([480, 640, 3], dtype = np.uint8)
+
+
             if webcam:  # batch_size >= 1
                 p, s, im0, frame = path[i], f'{i}: ', im0s[i].copy(), dataset.count
             else:
                 p, s, im0, frame = path, '', im0s.copy(), getattr(dataset, 'frame', 0)
+
+            black = np.zeros(im0.shape, dtype = np.uint8)
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
@@ -126,10 +129,12 @@ def detect(opt):
             print(f'{s}Done. ({t2 - t1:.3f}s)')
 
             # Stream results
-            if view_img:
+            if view_img or True:
+                print("[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]][][][[[[[[[[[[[[[[[[]]]]]]]]]")
                 cv2.imshow("Anjing", black)
                 cv2.imshow(str(p), im0)
-                cv2.waitKey(1)  # 1 millisecond
+                cv2.waitKey(0)  # 1 millisecond
+                cv2.waitKey(0)
 
             # Save results (image with detections)
             if save_img:
