@@ -9,8 +9,9 @@ bridge = CvBridge()
 from sensor_msgs.msg import CompressedImage
 
 # Import class definitions from ./scripts/coral_health_program.py
-# from srcipts.minh_machinelearning import yolo / rect_generator
+# from scripts.detect import yolo inference program
 from scripts.coral_grabcut_program import coral_grabcut
+from coral_detection.detect import *
 
 cb_index = 0
 
@@ -20,8 +21,8 @@ def main_callback(msg, callback_args):
     frame_number = cb_index
     frame = msg                 # for compressedImage to be published
 
-    if cb_index%5 != 0:
-        return
+    # if cb_index%5 != 0:
+    #     return
 
     rospy.loginfo("Received frame number: {}".format(frame_number))
 
@@ -32,23 +33,34 @@ def main_callback(msg, callback_args):
     except CvBridgeError as e:
         print(e)
 
+
+
+
     """ Step 1: Background Removal with Grabcut """
-    # TODO: 
-    rect_coordinates = yolo(cv_image)
-    new_coral = coral_grabcut(cv_image, rect_coordinates)
+    # TODO:
+    rect = call_parser("best_coral_detection.pt", "dummy.jpg", cv_image)    # rect in format [x0, y0, x1, y1]
+    rect_x0y0wh = (rect[0], rect[1], rect[2]-rect[0], rect[3]-rect[1])      # rect in format (x0, y0, w, h)
+    new_coral = coral_grabcut(cv_image, rect_x0y0wh)
     grabcut_output = new_coral.grabcut()
 
     cv2.imshow("Orig Video Feed", cv_image)
     cv2.imshow("OUTPUT grabcut", grabcut_output)
     cv2.waitKey(1)
 
-    """ Final Step: Publish image to GUI """
-    out_image = grabcut_output
 
-    result_publisher = callback_args
-    result_image = bridge.cv2_to_compressed_imgmsg(result_image)
-    result_publisher.publish(result_image)
-    rospy.loginfo("Published frame number: {}".format(cb_index))
+
+
+
+
+    """ Final Step: Publish image to GUI """
+    # result_image = grabcut_output
+
+    # result_publisher = callback_args
+    # result_image = bridge.cv2_to_compressed_imgmsg(result_image)
+    # result_publisher.publish(result_image)
+    # rospy.loginfo("Published frame number: {}".format(cb_index))
+
+
 
     # Newline prettyprint
     print("")

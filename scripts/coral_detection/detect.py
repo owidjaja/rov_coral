@@ -15,7 +15,7 @@ from utils.plots import colors, plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
-def detect(opt):
+def detect(opt, direct_image):
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     print ("HELLO THERE", imgsz)
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
@@ -50,9 +50,11 @@ def detect(opt):
     if webcam:
         view_img = check_imshow()
         cudnn.benchmark = True  # set True to speed up constant image size inference
+        print("[[[[[[[[[[[[[[[[[in webcam]]]]]]]]]]]]]]]")
         dataset = LoadStreams(source, img_size=imgsz, stride=stride)
     else:
-        dataset = LoadImages(source, img_size=imgsz, stride=stride)
+        print("[[[[[[[[[[[[[[in images]]]]]]]]]]]]]]")
+        dataset = LoadImages(source, img_size=imgsz, stride=stride, direct_image=direct_image)
 
     # Run inference
     if device.type != 'cpu':
@@ -161,7 +163,7 @@ def detect(opt):
     print(f'Done. ({time.time() - t0:.3f}s)')
 
 
-def call_parser(pt_string, src_string):
+def call_parser(pt_string, src_string, direct_image):
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default=pt_string, help='model.pt path(s)')
     parser.add_argument('--source', type=str, default=src_string, help='source')  # file/folder, 0 for webcam
@@ -194,10 +196,10 @@ def call_parser(pt_string, src_string):
     with torch.no_grad():
         if opt.update:  # update all models (to fix SourceChangeWarning)
             for opt.weights in ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']:
-                detect(opt=opt)
+                detect(opt=opt, direct_image=direct_image)
                 strip_optimizer(opt.weights)
         else:
-            detect(opt=opt)
+            detect(opt=opt, direct_image=direct_image)
 
 if __name__ == '__main__':
     # call_parser("best_coral_detection.pt", "img39.jpg")
