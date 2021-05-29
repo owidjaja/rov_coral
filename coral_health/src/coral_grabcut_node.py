@@ -7,6 +7,7 @@ from cv_bridge import CvBridge, CvBridgeError
 bridge = CvBridge()
 
 from sensor_msgs.msg import CompressedImage
+from advtrn_msg.msg import VideoStream
 
 # Import class definitions from ./scripts/coral_health_program.py
 # from scripts.detect import yolo inference program
@@ -72,7 +73,8 @@ def main():
     rospy.loginfo("coral_grabcut_node initialized")
 
     result_publisher = rospy.Publisher("/coral/result", CompressedImage, queue_size = 5)
-    rospy.Subscriber("camera/Coral_image/compressed", CompressedImage, main_callback, callback_args=result_publisher)
+    # rospy.Subscriber("camera/Coral_image/compressed", CompressedImage, main_callback, callback_args=result_publisher)
+    rospy.Subscriber('advtrn/VideoStream', VideoStream, main_callback)
 
     while not rospy.is_shutdown():
         try:
