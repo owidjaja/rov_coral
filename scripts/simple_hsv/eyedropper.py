@@ -50,11 +50,15 @@ def click_event(event, x, y, flags, param):
         Right click to inspect pixels as you move cursor """
     global adjusting, px_x, px_y
 
+    img = param
+
     if event==cv2.EVENT_RBUTTONDOWN:
         adjusting = not adjusting
 
     elif event==cv2.EVENT_LBUTTONDOWN or (event==cv2.EVENT_MOUSEMOVE and adjusting==True):
         px_x, px_y = x, y
+        hsv_val = img[y,x]
+        print("Actual HSV Values:", hsv_val)
         pass
 
 def generate_mask(img, x, y):
@@ -100,15 +104,16 @@ if __name__ == "__main__":
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
     # H: 0-179, S: 0-255, V: 0-255
     hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+    # hsv = src
     cv2.imshow("hsv", hsv)
 
     # cv2.namedWindow("Pixel Preview in HSV")
     # cv2.resizeWindow("Pixel Preview in HSV", 300, 300)
 
-    cv2.namedWindow("Trackbar_Window")
-    cv2.createTrackbar("hue_track", "Trackbar_Window", 30, 180, cb_nothing)
-    cv2.createTrackbar("sat_track", "Trackbar_Window", 50, 255, cb_nothing)
-    cv2.createTrackbar("val_track", "Trackbar_Window", 50, 255, cb_nothing)
+    cv2.namedWindow("Trackbar_Window", cv2.WINDOW_NORMAL)
+    cv2.createTrackbar("hue_track", "Trackbar_Window", 6, 180//2, cb_nothing)
+    cv2.createTrackbar("sat_track", "Trackbar_Window", 42, 255//2, cb_nothing)
+    cv2.createTrackbar("val_track", "Trackbar_Window", 24, 255//2, cb_nothing)
 
     """ Initializing global variables to be used in pink and white mask generation """
     adjusting = False # true if right clicked
@@ -121,6 +126,9 @@ if __name__ == "__main__":
         pink_mask = generate_mask(hsv, px_x, px_y)
         cv2.imshow("pink_mask", pink_mask)
         if cv2.waitKey(1) == 27:
+            break
+        elif cv2.waitKey(1) == 's':
+            cv2.imwrite("eyedrop_pink_mask.jpg", pink_mask)
             break
     cv2.destroyWindow("pink_mask")
 

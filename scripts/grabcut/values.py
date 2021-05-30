@@ -1,11 +1,16 @@
 import cv2
 import numpy as np
 
+""" take in input mask, and edit values onto mask to simulate grabcut rect mask """
+
 img_src = cv2.imread("coral_under3.jpg")
 mask = cv2.imread("coral_mask.jpg", cv2.IMREAD_GRAYSCALE)
 # mask = cv2.imread("coral_mask.jpg", cv2.IMREAD_COLOR)
 
-print(mask.shape)
+# print(mask, "\n")
+# print(mask[0], "\n")
+# print(mask[0][0], "\n")
+print("mask.shape", mask.shape)
 height, width = mask.shape
 cv2.waitKey(0)
 
@@ -33,24 +38,28 @@ _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
 #             img_src[i, j] = (0,0,255)
 #             mask[i, j] = 2
 
+# colored_pixels = np.where(
+#     (mask[:, :, 0] != 0) &
+#     (mask[:, :, 1] != 0) & 
+#     (mask[:, :, 2] != 0)
+# )
+
 # get (i, j) positions of all RGB pixels that are black (i.e. [0, 0, 0])
 black_pixels = np.where(
-    (mask[:, :, 0] == 0) &
-    (mask[:, :, 1] == 0) & 
-    (mask[:, :, 2] == 0)
+    (mask[:, :] == 0)
+)
+
+colored_pixels = np.where(
+    (mask[:, :] != 0)
 )
 
 img_src[black_pixels] = (0,0,255)
 mask[black_pixels] = 2
 
-colored_pixels = np.where(
-    (mask[:, :, 0] != 0) &
-    (mask[:, :, 1] != 0) & 
-    (mask[:, :, 2] != 0)
-)
-
 img_src[colored_pixels] = (0,255,0)
 mask[colored_pixels] = 3
+
+_, mask = cv2.threshold(mask, 2, 255, cv2.THRESH_BINARY)
 
 cv2.imshow("img_src", img_src)
 cv2.imshow("mask", mask)

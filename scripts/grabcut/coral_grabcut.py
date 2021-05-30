@@ -1,42 +1,41 @@
 import cv2
 import numpy as np
 
+""" Custom grabcut with custom masks """
+
 img_drawrect = cv2.imread("edited_src.jpg")
 
 image_gray = cv2.cvtColor(img_drawrect, cv2.COLOR_BGR2GRAY)
-_, threshold = cv2.threshold(image_gray,127, 255,0)
+_, threshold = cv2.threshold(image_gray, 127, 255,0)
 #cv2.imshow("thresh", threshold)
 # cv2.waitKey(0)
 
-contours, hierarchy = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-# contour_sizes = [(cv2.contourArea(contour), contour) for contour in contours]
+ksize = 5
+my_kernel = np.ones((ksize,ksize), np.uint8)
+closed = cv2.morphologyEx(threshold, cv2.MORPH_CLOSE, my_kernel)
 
-# biggest_contour = max(contour_sizes, key=lambda x: x[0])[1]
-# print(biggest_contour)
-# cv2.drawContours(img_drawrect, biggest_contour, -1, [255,0,0], thickness=3)
+contours, hierarchy = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+print(len(contours))
 
-# min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(biggest_contour)
-# w, h = img_drawrect.shape[::-1]
-# top_left = min_loc
-# bottom_right = (top_left[0] + w, top_left[1] + h)
-# cv2.rectangle(img_drawrect,top_left, bottom_right, 255, 2)
+# draw in blue the contours that were found
+# cv2.drawContours(img_drawrect, contours, -1, [255,0,0], thickness=2)
 
-
-# draw in blue the contours that were founded
-cv2.drawContours(img_drawrect, contours, -1, 255, thickness=1)
-
-# find the biggest countour (c) by the area
+# find the biggest countour (c) by area
 c = max(contours, key = cv2.contourArea)
+print(len(c))
+cv2.drawContours(img_drawrect, c, -1, [255,0,255], thickness=3)
 x,y,w,h = cv2.boundingRect(c)
 
-# draw the biggest contour (c) in green
-cv2.rectangle(img_drawrect,(x-20,y-35),(x+w+20,y+h+20),(0,255,0),2)
+# draw green rect around the biggest contour (c)
+# need to extend out ceiling as as white coral poorly detected
+extend_range = 10
+cv2.rectangle(img_drawrect,(x-extend_range,y-extend_range),(x+w+extend_range,y+h+extend_range),(0,255,0),2)
 
 cv2.imshow("rect", img_drawrect)
 # cv2.waitKey(0)
 
 src_src = cv2.imread("coral_under3.JPG")
-rect = (x-20, y-35, w + 40, h+40)
+rect = (x-extend_range, y-extend_range, w+2*extend_range, h+2*extend_range)
 
 mask = cv2.imread("edited_mask.jpg", cv2.IMREAD_GRAYSCALE)
 
@@ -56,36 +55,42 @@ mask = cv2.imread("edited_mask.jpg", cv2.IMREAD_GRAYSCALE)
 #         else:
 #             cv2.circle(mask, (j-1, i-1), 1, 2, -1)
 
-try:
-    bgdmodel = np.zeros((1, 65), np.float64)
-    fgdmodel = np.zeros((1, 65), np.float64)
-    # if (self.rect_or_mask == 0):         # grabcut with rect
-    itercount = 1
-    cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
-    cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, itercount, cv2.GC_INIT_WITH_MASK)
-        # self.rect_or_mask = 1
-    # elif (self.rect_or_mask == 1):       # grabcut with mask
-    # cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_MASK)
-except:
-    import traceback
-    traceback.print_exc()
+rect_or_mask = 'r'
+output = np.zeros((src_src.shape), dtype=np.uint8)
+while True:
+    cv2.imshow('output', output)
+    cv2.imshow('input', src_src)
+    if cv2.waitKey(1) == 27:        # esc to exit
+        break
 
+    try:
+        bgdmodel = np.zeros((1, 65), np.float64)
+        fgdmodel = np.zeros((1, 65), np.float64)
+        # itercount = 1
+        if (rect_or_mask == 'r'):         # grabcut with rect in first loop iter
+            cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
+        else:
+            cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_MASK)
+    except:
+        import traceback
+        traceback.print_exc()
 
-mask2 = np.where((mask==1) + (mask==3), 255, 0).astype('uint8')
-if mask2 is None:
-    exit("ERROR: mask2 None")
+    mask2 = np.where((mask==1) + (mask==3), 255, 0).astype('uint8')
+    if mask2 is None:
+        exit("ERROR: mask2 None")
+    output = cv2.bitwise_and(src_src, src_src, mask=mask2)
 
 # print("src", src_src.shape)
 # print("mask2", mask2.shape)
 # print(mask2[0,0])
 
 # mask2 = cv2.cvtColor(mask2, cv2.COLOR_BGR2GRAY)
-_, mask2 = cv2.threshold(mask2, 1, 255, cv2.THRESH_BINARY)
+# _, mask2 = cv2.threshold(mask2, 1, 255, cv2.THRESH_BINARY)
 #cv2.imshow("thresh", mask2)
-print(mask2.shape)
+# print(mask2.shape)
 # cv2.waitKey(0)
 
-output = cv2.bitwise_and(src_src, src_src, mask=mask2)
+# output = cv2.bitwise_and(src_src, src_src, mask=mask2)
 
 cv2.imshow("OUTPUT", output)
 cv2.imwrite("out_rect.jpg", output)
