@@ -5,7 +5,6 @@ from pathlib import Path
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
-import numpy as np
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -15,9 +14,9 @@ from utils.plots import colors, plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
-def detect(opt, direct_image):
+@torch.no_grad()
+def detect(opt):
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
-    print ("HELLO THERE", imgsz)
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -52,7 +51,7 @@ def detect(opt, direct_image):
         cudnn.benchmark = True  # set True to speed up constant image size inference
         dataset = LoadStreams(source, img_size=imgsz, stride=stride)
     else:
-        dataset = LoadImages(source, img_size=imgsz, stride=stride, direct_image=direct_image)
+        dataset = LoadImages(source, img_size=imgsz, stride=stride)
 
     # Run inference
     if device.type != 'cpu':
@@ -78,17 +77,12 @@ def detect(opt, direct_image):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
-
         # Process detections
         for i, det in enumerate(pred):  # detections per image
-
-
             if webcam:  # batch_size >= 1
                 p, s, im0, frame = path[i], f'{i}: ', im0s[i].copy(), dataset.count
             else:
                 p, s, im0, frame = path, '', im0s.copy(), getattr(dataset, 'frame', 0)
-
-            black = np.zeros(im0.shape, dtype = np.uint8)
 
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
@@ -117,11 +111,6 @@ def detect(opt, direct_image):
                         c = int(cls)  # integer class
                         label = None if opt.hide_labels else (names[c] if opt.hide_conf else f'{names[c]} {conf:.2f}')
                         plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=opt.line_thickness)
-
-
-                        rect = [int(xyxy[i].item()) for i in range(len(xyxy))]
-                        cv2.rectangle(black, [rect[0], rect[1]], [rect[2], rect[3]], 255, 2)
-
                         if opt.save_crop:
                             save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
@@ -129,11 +118,9 @@ def detect(opt, direct_image):
             print(f'{s}Done. ({t2 - t1:.3f}s)')
 
             # Stream results
-            if view_img or True:
-                cv2.imshow("Anjing", black)
+            if view_img:
                 cv2.imshow(str(p), im0)
-                cv2.waitKey(0)  # 1 millisecond
-                cv2.waitKey(0)
+                cv2.waitKey(1)  # 1 millisecond
 
             # Save results (image with detections)
             if save_img:
@@ -159,17 +146,16 @@ def detect(opt, direct_image):
         print(f"Results saved to {save_dir}{s}")
 
     print(f'Done. ({time.time() - t0:.3f}s)')
-    return rect
 
 
-def call_parser(pt_string, src_string, direct_image):
+def call_parser(weights_path, source_path):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default=pt_string, help='model.pt path(s)')
-    parser.add_argument('--source', type=str, default=src_string, help='source')  # file/folder, 0 for webcam
+    parser.add_argument('--weights', nargs='+', type=str, default=weights_path, help='model.pt path(s)')
+    parser.add_argument('--source', type=str, default=source_path, help='source')  # file/folder, 0 for webcam
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')
-    parser.add_argument('--max-det', type=int, default=10, help='maximum number of detections per image')
+    parser.add_argument('--max-det', type=int, default=1000, help='maximum number of detections per image')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--view-img', action='store_true', help='display results')
     parser.add_argument('--save-txt', action='store_true', help='save results to *.txt')
@@ -187,21 +173,17 @@ def call_parser(pt_string, src_string, direct_image):
     parser.add_argument('--hide-labels', default=False, action='store_true', help='hide labels')
     parser.add_argument('--hide-conf', default=False, action='store_true', help='hide confidences')
     opt = parser.parse_args()
-    # print(vars(opt))
+    # print(opt)
     check_requirements(exclude=('tensorboard', 'pycocotools', 'thop'))
 
-    cv2.namedWindow("Anjing")
-
-    with torch.no_grad():
-        if opt.update:  # update all models (to fix SourceChangeWarning)
-            for opt.weights in ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']:
-                rect = detect(opt=opt, direct_image=direct_image)
-                strip_optimizer(opt.weights)
-        else:
-            rect = detect(opt=opt, direct_image=direct_image)
-
-        return rect
+    if opt.update:  # update all models (to fix SourceChangeWarning)
+        for opt.weights in ['yolov5s.pt', 'yolov5m.pt', 'yolov5l.pt', 'yolov5x.pt']:
+            detect(opt=opt)
+            strip_optimizer(opt.weights)
+    else:
+        detect(opt=opt)
 
 if __name__ == '__main__':
-    # call_parser("best_coral_detection.pt", "img39.jpg")
+    print("\n\nIn detect.py __main__\n\n")
+    # call_parser("/home/oscar/catkin_ws/src/coral_health/src/coral_detection/best_coral_detection.pt", "/home/oscar/catkin_ws/src/coral_health/src/temp_frame.jpg")
     pass
