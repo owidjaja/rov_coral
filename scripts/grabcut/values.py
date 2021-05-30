@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
 
-""" take in input mask, and edit values onto mask to simulate grabcut rect mask """
+""" 
+    take in input mask, and edit values onto mask to simulate grabcut rect mask 
+    output: edited_src.jpg, edited_mask.jpg with value 2 as probable background
+"""
 
 img_src = cv2.imread("coral_under3.jpg")
 mask = cv2.imread("coral_mask.jpg", cv2.IMREAD_GRAYSCALE)
@@ -45,13 +48,9 @@ _, mask = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
 # )
 
 # get (i, j) positions of all RGB pixels that are black (i.e. [0, 0, 0])
-black_pixels = np.where(
-    (mask[:, :] == 0)
-)
+black_pixels = np.where(mask[:, :] == 0)
 
-colored_pixels = np.where(
-    (mask[:, :] != 0)
-)
+colored_pixels = np.where(mask[:, :] != 0)
 
 img_src[black_pixels] = (0,0,255)
 mask[black_pixels] = 2
@@ -59,7 +58,7 @@ mask[black_pixels] = 2
 img_src[colored_pixels] = (0,255,0)
 mask[colored_pixels] = 3
 
-_, mask = cv2.threshold(mask, 2, 255, cv2.THRESH_BINARY)
+# _, mask = cv2.threshold(mask, 2, 255, cv2.THRESH_BINARY)
 
 cv2.imshow("img_src", img_src)
 cv2.imshow("mask", mask)

@@ -116,7 +116,6 @@ class App():
         print(" Draw a rectangle around the object using right mouse button \n")
 
         while(1):
-            print("iter")
             cv.imshow('output', self.output)
             cv.imshow('input', self.img)
             k = cv.waitKey(1)
@@ -166,6 +165,11 @@ class App():
                     traceback.print_exc()
 
             mask2 = np.where((self.mask==1) + (self.mask==3), 255, 0).astype('uint8')
+            cv.imshow("mask2", mask2)
+            cv.imshow("background", np.where(self.mask==0, 255, 0).astype('uint8'))
+            cv.imshow("foreground", np.where(self.mask==1, 255, 0).astype('uint8'))
+            cv.imshow("probable_background", np.where(self.mask==2, 255, 0).astype('uint8'))
+            cv.imshow("probable_foreground", np.where(self.mask==3, 255, 0).astype('uint8'))
             self.output = cv.bitwise_and(self.img2, self.img2, mask=mask2)
 
         cv.imwrite("grabcut_mask.jpg", self.output)

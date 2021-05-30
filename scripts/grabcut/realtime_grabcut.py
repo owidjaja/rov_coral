@@ -2,6 +2,8 @@ import cv2 as cv
 import numpy as np
 import sys
 
+""" realtime grabcut with predrawn rectangle, removing need for yolo """ 
+
 class App():
     BLUE = [255,0,0]        # rectangle color
 

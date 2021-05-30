@@ -60,38 +60,28 @@ output = np.zeros((src_src.shape), dtype=np.uint8)
 while True:
     cv2.imshow('output', output)
     cv2.imshow('input', src_src)
-    if cv2.waitKey(1) == 27:        # esc to exit
+    k = cv2.waitKey(1)
+    if k == 27:        # esc to exit
         break
-
-    try:
-        bgdmodel = np.zeros((1, 65), np.float64)
-        fgdmodel = np.zeros((1, 65), np.float64)
-        # itercount = 1
-        if (rect_or_mask == 'r'):         # grabcut with rect in first loop iter
-            cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
-        else:
-            cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_MASK)
-    except:
-        import traceback
-        traceback.print_exc()
+    elif k == ord('n'):
+        try:
+            bgdmodel = np.zeros((1, 65), np.float64)
+            fgdmodel = np.zeros((1, 65), np.float64)
+            if (rect_or_mask == 'r'):         # grabcut with rect in first loop iter
+                cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_RECT)
+                rect_or_mask = 'm'
+            else:
+                cv2.grabCut(src_src, mask, rect, bgdmodel, fgdmodel, 1, cv2.GC_INIT_WITH_MASK)
+        except:
+            import traceback
+            traceback.print_exc()
 
     mask2 = np.where((mask==1) + (mask==3), 255, 0).astype('uint8')
     if mask2 is None:
         exit("ERROR: mask2 None")
     output = cv2.bitwise_and(src_src, src_src, mask=mask2)
 
-# print("src", src_src.shape)
-# print("mask2", mask2.shape)
-# print(mask2[0,0])
-
-# mask2 = cv2.cvtColor(mask2, cv2.COLOR_BGR2GRAY)
-# _, mask2 = cv2.threshold(mask2, 1, 255, cv2.THRESH_BINARY)
-#cv2.imshow("thresh", mask2)
-# print(mask2.shape)
-# cv2.waitKey(0)
-
-# output = cv2.bitwise_and(src_src, src_src, mask=mask2)
-
 cv2.imshow("OUTPUT", output)
-cv2.imwrite("out_rect.jpg", output)
-cv2.waitKey(0)
+if cv2.waitKey(0) == ord('s'):
+    print("saving output as out_rect.jpg...")
+    cv2.imwrite("out_rect.jpg", output)

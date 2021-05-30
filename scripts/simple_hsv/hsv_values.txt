@@ -2,8 +2,10 @@ pink
 	hsv extend: 6 42 24
 	bgr: 160 151 84
 
-white
+	hsv actual: 104 75 123
 
+white
+	hsv actual: 94 125 155
 
 blue
 	actual hsv: 97 146 140
