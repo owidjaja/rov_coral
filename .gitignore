@@ -1,0 +1,4 @@
+local_misc/
+*.pyc
+scripts/coral_detection/runs/detect/
+coral_health/src/coral_detection/runs/detect/

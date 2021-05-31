@@ -1,1 +1,1 @@
-# dummy .py for directory to be a package
+# dummy .py file for directory to be a package
