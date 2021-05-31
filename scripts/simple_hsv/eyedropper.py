@@ -125,6 +125,7 @@ if __name__ == "__main__":
         cv2.setMouseCallback('hsv', click_event, hsv)
         pink_mask = generate_mask(hsv, px_x, px_y)
         cv2.imshow("pink_mask", pink_mask)
+        cv2.imshow("masked", cv2.bitwise_and(src, src, mask=pink_mask))
         if cv2.waitKey(1) == 27:
             break
         elif cv2.waitKey(1) == 's':
@@ -138,6 +139,7 @@ if __name__ == "__main__":
         cv2.setMouseCallback('hsv', click_event, hsv)
         white_mask = generate_mask(hsv, px_x, px_y)
         cv2.imshow("white_mask", white_mask)
+        cv2.imshow("masked", cv2.bitwise_and(src, src, mask=white_mask))
         if cv2.waitKey(1) == 27:
             break
     cv2.destroyWindow("white_mask")
@@ -147,8 +149,11 @@ if __name__ == "__main__":
     pw_mask = cv2.bitwise_or(pink_mask, white_mask)
     cv2.imshow("combined_mask", pw_mask)
 
-    if cv2.waitKey(0) == 's':
+    if cv2.waitKey(0) == ord('m'):
         print("saving to coral_mask.jpg")
-        cv2.imwrite("coral_mask.jpg", pw_mask)
-    print(pw_mask.shape)
+        cv2.imwrite("reference_coral_mask.jpg", pw_mask)
+    elif cv2.waitKey(0) == ord('c'):
+        print("saving coral after mask as masked_perfect_coral.jpg")
+        cv2.imwrite("masked_perfect_coral.jpg", cv2.bitwise_and(src,src,mask=pw_mask))
+    # print(pw_mask.shape)
     cv2.destroyAllWindows()
