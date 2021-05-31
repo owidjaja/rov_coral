@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-""" take in input mask: coral_mask.jpg, background_mask.jpg
+""" take in input mask: coral_mask.jpg for rect, background_mask.jpg for mask
     and edit values onto mask to simulate grabcut rect mask """
 
 def get_rect():
@@ -101,6 +101,7 @@ mask = get_mask(rect)
 rect_or_mask = 'r'
 output = np.zeros((img_src.shape), dtype=np.uint8)
 for i in range(3):
+# while True:
     cv2.imshow('output', output)
     cv2.imshow('input', img_src)
     k = cv2.waitKey(1)

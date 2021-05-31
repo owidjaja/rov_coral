@@ -97,7 +97,7 @@ def generate_mask(img, x, y):
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("../res/coral_under3.jpg")
+    src = cv2.imread("../res/coral_past_flip.jpg")
     # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
@@ -148,6 +148,7 @@ if __name__ == "__main__":
     cv2.imshow("combined_mask", pw_mask)
 
     if cv2.waitKey(0) == 's':
+        print("saving to coral_mask.jpg")
         cv2.imwrite("coral_mask.jpg", pw_mask)
     print(pw_mask.shape)
     cv2.destroyAllWindows()
