@@ -55,14 +55,14 @@ if __name__ == '__main__':
   
   # Read reference image
   # refFilename = "form.jpg"
-  refFilename = "../../local_misc/coral_11mar2.jpg"
+  refFilename = "crop_orig_coral.JPG"
   print("Reading reference image : ", refFilename)
   imReference = cv2.imread(refFilename, cv2.IMREAD_COLOR)
 
   # Read image to be aligned
   # imFilename = "scanned-form.jpg"
   # imFilename = "../res/coral_night.jpg"
-  imFilename = "../../local_misc/coral_11mar1.jpg"
+  imFilename = "test_target.jpg"
   print("Reading image to align : ", imFilename);  
   im = cv2.imread(imFilename, cv2.IMREAD_COLOR)
   

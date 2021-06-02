@@ -97,8 +97,8 @@ def generate_mask(img, x, y):
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("../res/coral_past_flip.jpg")
-    # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
+    src = cv2.imread("../res/crop_orig_coral.jpg")
+    src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     if cv2.waitKey(0) == ord('m'):
         print("saving to coral_mask.jpg")
         cv2.imwrite("reference_coral_mask.jpg", pw_mask)
-    elif cv2.waitKey(0) == ord('c'):
+    elif cv2.waitKey(0) == ord('s'):
         print("saving coral after mask as masked_perfect_coral.jpg")
         cv2.imwrite("masked_perfect_coral.jpg", cv2.bitwise_and(src,src,mask=pw_mask))
     # print(pw_mask.shape)
