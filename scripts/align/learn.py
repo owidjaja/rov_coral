@@ -13,7 +13,8 @@ _, imagethreshold = cv2.threshold(imagegray, 245, 255, cv2.THRESH_BINARY_INV)
 #finding the contours in the given image using findContours() function
 imagecontours, _ = cv2.findContours(imagethreshold, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-#for each of the contours detected, the shape of the contours is approximated using approxPolyDP() function and the contours are drawn in the image using drawContours() function
+#for each of the contours detected, the shape of the contours is approximated using approxPolyDP() function 
+# and the contours are drawn in the image using drawContours() function
 for count in imagecontours:
     epsilon = 0.01 * cv2.arcLength(count, True)
     approximations = cv2.approxPolyDP(count, epsilon, True)

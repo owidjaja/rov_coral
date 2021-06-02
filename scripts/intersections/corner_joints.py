@@ -9,8 +9,8 @@ def cb_nothing(x):
     pass
 
 # Load image, grayscale, Gaussian blur, Otsus threshold
-# image = cv2.imread('../res/coral_mask.jpg')
-image = cv2.imread("../res/reference_coral_mask.jpg")
+image = cv2.imread('../res/coral_mask.jpg')
+# image = cv2.imread("../res/reference_coral_mask.jpg")
 # cv2.imshow('image', image)
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 blur = cv2.GaussianBlur(gray, (3,3), 0)
@@ -57,9 +57,13 @@ while True:
             continue
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-        cv2.circle(image2, (cx, cy), 3, (36,255,12), -1)
+        cv2.circle(image2, (cx, cy), 8, (36,255,12), -1)
 
     cv2.imshow('image2', image2)
-
-    if cv2.waitKey(1) == 27:    # esc to break
+    
+    k = cv2.waitKey(1)
+    if k == 27:    # esc to break
+        break
+    elif k == ord('s'):
+        cv2.imwrite("mask_with_corners.jpg", image2)
         break
