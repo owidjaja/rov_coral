@@ -97,14 +97,14 @@ def generate_mask(img, x, y):
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("../res/crop_orig_coral.jpg")
-    src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
+    src = cv2.imread("cropped_orig.jpg")
+    # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
     # H: 0-179, S: 0-255, V: 0-255
-    hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
-    # hsv = src
+    # hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+    hsv = src
     cv2.imshow("hsv", hsv)
 
     # cv2.namedWindow("Pixel Preview in HSV")
@@ -128,7 +128,8 @@ if __name__ == "__main__":
         cv2.imshow("masked", cv2.bitwise_and(src, src, mask=pink_mask))
         if cv2.waitKey(1) == 27:
             break
-        elif cv2.waitKey(1) == 's':
+        elif cv2.waitKey(1) == ord('s'):
+            print("saving pink mask")
             cv2.imwrite("eyedrop_pink_mask.jpg", pink_mask)
             break
     cv2.destroyWindow("pink_mask")
@@ -141,6 +142,10 @@ if __name__ == "__main__":
         cv2.imshow("white_mask", white_mask)
         cv2.imshow("masked", cv2.bitwise_and(src, src, mask=white_mask))
         if cv2.waitKey(1) == 27:
+            break
+        elif cv2.waitKey(1) == ord('s'):
+            print("saving white mask")
+            cv2.imwrite("eyedrop_white_mask.jpg", white_mask)
             break
     cv2.destroyWindow("white_mask")
 

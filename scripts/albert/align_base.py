@@ -1,12 +1,15 @@
 import cv2
 import numpy as np
 
-def scale_resizing(img, scale_percent):
+def auto_resize(img, target_width=800):
     print("Original Dimension: ", img.shape)
 
-    width = int(img.shape[1] * (scale_percent/100))
-    height= int(img.shape[0] * (scale_percent/100))
-    dim = (width, height)
+    orig_height, orig_width = img.shape[:2]
+    scale_ratio = target_width / orig_width
+
+    new_width = int(img.shape[1] * (scale_ratio))
+    new_height= int(img.shape[0] * (scale_ratio))
+    dim = (new_width, new_height)
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
     print("Resized Dimension: ", resized.shape, '\n')
@@ -39,8 +42,7 @@ def extend_range(value, is_type_hue, upper_or_lower, tolerance):
 def get_black_base(hsv, actual_hsv=[105,198,18], tolerance=[30,50,30]):
     """ get black base mask to mask over img """
 
-    cv2.imshow("hsv", hsv)
-    cv2.waitKey(0)
+    # cv2.imshow("hsv", hsv)
 
     hue, sat, val = actual_hsv
     print("actual:", actual_hsv)
@@ -60,62 +62,69 @@ def get_black_base(hsv, actual_hsv=[105,198,18], tolerance=[30,50,30]):
     print("range:", lower, upper, '\n')
 
     base_mask = cv2.inRange(hsv, lower, upper)
-    cv2.imshow("base_mask", base_mask)
+    # cv2.imshow("base_mask", base_mask)
+    
+    cv2.waitKey(0)
 
     return base_mask
 
-
 def get_mid_line(src, mask):
-    # gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-    # ret, thresh = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+    """ close operation to remove noise, then draw line based on midpoint of biggest contour (black base) """
 
     closed = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((3,3), dtype=np.uint8))
-    cv2.imshow("closed", closed)
-    cv2.waitKey(0)
 
     contours, hierarchy = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print("no. of contours: ", len(contours))
+    num_contours = len(contours)
+    if num_contours == 0:
+        print("ERROR: 0 contours found")
+        cv2.imshow("closed", closed)
+        cv2.waitKey(0)
+        exit()
+    else:
+        print("no. of contours found: ", num_contours)
 
     # find the biggest countour (c) by area
     c = max(contours, key = cv2.contourArea)
 
-    # # extLeft = tuple(c[c[:, :, 0].argmin()][0])
-    # # extRight = tuple(c[c[:, :, 0].argmax()][0])
-    # # extTop = tuple(c[c[:, :, 1].argmin()][0])
-    # # extBot = tuple(c[c[:, :, 1].argmax()][0])
-
-    # canvas = np.ones(base_mask.shape, dtype=np.uint8)
-    # print("canvas.shape:", canvas.shape)
-    # # https://stackoverflow.com/questions/45246036/cv2-drawcontours-will-not-draw-filled-contour
-    # cv2.drawContours(canvas, [c], -1, [255,255,255], thickness=-1)
-    # # cv2.circle(canvas, extLeft, 8, (0, 0, 255), -1)     # red
-    # # cv2.circle(canvas, extRight, 8, (0, 255, 0), -1)    # green
-    # # cv2.circle(canvas, extTop, 8, (255, 0, 0), -1)      # blue
-    # # cv2.circle(canvas, extBot, 8, (255, 255, 0), -1)    # cyan
-
     x,y,w,h = cv2.boundingRect(c)
-    cv2.rectangle(src, (x,y), (x+w,y+h), (255,0,0), 2)
+    # cv2.rectangle(src, (x,y), (x+w,y+h), (255,0,0), 2)
 
     height, width = src.shape[:2]
-    cv2.line(src, (x+w//2, 0), (x+w//2, height), (0,0,255), 2)
+    # cv2.line(src, (x+w//2, 0), (x+w//2, height), (0,0,255), 2)
 
-    # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
-    # cv2.imshow("canvas", canvas)
+    # cv2.imshow("line", src)
+    # cv2.waitKey(0)
 
-    cv2.imshow("line", src)
-    cv2.waitKey(0)
+    return [x, y, w, h]
 
+def crop_to_standard(src, base_dim, approx_height_ratio=4, crop_extend=0.1):
+    x, y, w, h = base_dim
+
+    lower_x = int(x - crop_extend * w)
+    lower_y = int(y - (approx_height_ratio + crop_extend) * h)
+
+    upper_x = int(x + (1 + crop_extend) * w)
+    upper_y = int(y + (1 + crop_extend) * h)
+
+    cropped = src[lower_y:upper_y, lower_x:upper_x]
+    cropped = auto_resize(cropped, target_width=360)
+
+    cv2.imshow("cropped", cropped)
+    k = cv2.waitKey(0)
+    if k == ord('s'):
+        print("saving cropped image with dim:", cropped.shape)
+        cv2.imwrite("cropped.jpg", cropped)
 
 src = cv2.imread("new_coral1.JPG")
 if src is None:
     exit("ERROR: failed to read image")
 
-src = scale_resizing(src, scale_percent=20)
+# src = auto_resize(src)
 
 hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
 
 base_mask = get_black_base(hsv)
-print("base_mask.shape:", base_mask.shape)
-# black_base_with_noise = cv2.bitwise_and(src, src, mask=base_mask)
 
-get_mid_line(src, base_mask)
+base_dim = get_mid_line(src, base_mask)
+
+crop_to_standard(src, base_dim)
