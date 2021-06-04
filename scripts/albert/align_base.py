@@ -97,7 +97,7 @@ def get_mid_line(src, mask):
 
     return [x, y, w, h]
 
-def crop_to_standard(src, base_dim, approx_height_ratio=4, crop_extend=0.1):
+def crop_to_standard(src, base_dim, approx_height_ratio=4.5, crop_extend=0.15):
     x, y, w, h = base_dim
 
     lower_x = int(x - crop_extend * w)
@@ -115,7 +115,7 @@ def crop_to_standard(src, base_dim, approx_height_ratio=4, crop_extend=0.1):
         print("saving cropped image with dim:", cropped.shape)
         cv2.imwrite("cropped.jpg", cropped)
 
-src = cv2.imread("new_coral1.JPG")
+src = cv2.imread("image.JPG")
 if src is None:
     exit("ERROR: failed to read image")
 

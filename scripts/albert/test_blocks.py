@@ -12,14 +12,16 @@ test_image = cv2.imread("new_coral1.jpg")
 test_image = cv2.resize(test_image, ( int(test_image.shape[1]*0.15), int(test_image.shape[0]*0.15) ), interpolation=cv2.INTER_AREA)
 # ret, test_image = cv2.threshold(old_pink, 32, 255, cv2.THRESH_BINARY)
 cv2.imshow("test_image", test_image)
-print("test_image.shape:", test_image.shape)
+# print("test_image.shape:", test_image.shape)
 cv2.waitKey(0)
+
+height, width = test_image.shape[:2]
+print("opt_r?", height/8)
+print("opt_c?", width/8)
 
 # Define the window size
 windowsize_r = 50
 windowsize_c = 50
-
-cv2.namedWindow("window")
 
 n_rows = int(np.ceil((test_image.shape[0] - windowsize_r) / windowsize_r))
 n_cols = int(np.ceil((test_image.shape[1] - windowsize_c) / windowsize_c))
@@ -32,6 +34,7 @@ blocks = [ [ window for j in range (n_cols)] for i in range (n_rows)]
 count_row = 0
 count_col = 0
 
+cv2.namedWindow("window")
 for r in range(0, test_image.shape[0] - windowsize_r, windowsize_r):
     for c in range(0, test_image.shape[1] - windowsize_c, windowsize_c):
         window = test_image[r:r+windowsize_r, c:c+windowsize_c]
@@ -43,6 +46,7 @@ for r in range(0, test_image.shape[0] - windowsize_r, windowsize_r):
         #     cv2.circle(window, (40,10), 5, (0,0,255), -1)
 
         blocks[r//windowsize_r][c//windowsize_c] = window
+        # old_pink[r//windowsize_r][c//windowsize_c] = window
 
         cv2.imshow("window", window)
 
@@ -56,7 +60,7 @@ for r in range(0, test_image.shape[0] - windowsize_r, windowsize_r):
     # count_col = 0
     # count_row += 1
 
-print(count_row)
+# print(count_row)
 # print(blocks)
 
 def concat_vh(list_2d):
