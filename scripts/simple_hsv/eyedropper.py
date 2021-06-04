@@ -97,14 +97,14 @@ def generate_mask(img, x, y):
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("cropped_orig.jpg")
-    # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
+    src = cv2.imread("../res/test_target.jpg")
+    src = cv2.resize(src, ( int(src.shape[1]*0.15), int(src.shape[0]*0.15) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
     # H: 0-179, S: 0-255, V: 0-255
-    # hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
-    hsv = src
+    hsv = cv2.cvtColor(src, cv2.COLOR_BGR2HSV)
+    # hsv = src
     cv2.imshow("hsv", hsv)
 
     # cv2.namedWindow("Pixel Preview in HSV")
