@@ -92,8 +92,8 @@ if __name__ == "__main__":
         Working ones for now are IMAGES[0] and IMAGES[1]
         Need to work on resizing to a standard size for the rest """
 
-    old = cv2.imread(IMAGES[0])
-    new = cv2.imread(IMAGES[1])
+    old = cv2.imread("../albert/eyedrop_pink_mask.jpg")
+    new = cv2.imread("../albert/new_pink_mask.jpg")
     cv2.imshow("old", old)
     cv2.imshow("new", new)
     cv2.waitKey(0)
@@ -105,7 +105,8 @@ if __name__ == "__main__":
     cv2.waitKey(0)
 
     # TODO: resizing images so that these old_coral, new_coral would always be same size
-    diff = cv2.bitwise_xor(old_coral, new_coral)
+    # diff = cv2.bitwise_xor(old_coral, new_coral)
+    diff = cv2.bitwise_xor(old, new)
     cv2.imshow("diff", diff)
 
     ref_diff = remove_noise(diff)

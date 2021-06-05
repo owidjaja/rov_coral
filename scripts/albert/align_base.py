@@ -115,7 +115,8 @@ def crop_to_standard(src, base_dim, approx_height_ratio=4.5, crop_extend=0.15):
         print("saving cropped image with dim:", cropped.shape)
         cv2.imwrite("cropped.jpg", cropped)
 
-src = cv2.imread("image.JPG")
+
+src = cv2.imread("new_coral1.JPG")
 if src is None:
     exit("ERROR: failed to read image")
 

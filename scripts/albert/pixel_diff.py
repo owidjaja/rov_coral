@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 
 def find_nearest_white(nonzero, target):
     distances = np.sqrt((nonzero[:,:,0] - target[0]) ** 2 + (nonzero[:,:,1] - target[1]) ** 2)
@@ -10,14 +11,15 @@ def find_nearest_white(nonzero, target):
     
     return nonzero[nearest_index]
 
+old_src = cv2.imread("GOPR0250.JPG")
+new_src = cv2.imread("new_coral1.jpg")
+
 old_pink = cv2.imread("eyedrop_pink_mask.JPG")
 old_white = cv2.imread("eyedrop_white_mask.jpg")
 new_pink = cv2.imread("new_pink_mask.jpg")
 new_white = cv2.imread("new_white_mask.jpg")
 
-temp = new_pink
-new_pink = old_pink
-old_pink = temp
+new_pink = cv2.erode(new_pink, np.ones((2,2),dtype=np.uint8))
 
 gray = cv2.cvtColor(new_pink, cv2.COLOR_BGR2GRAY)
 ret, thresh = cv2.threshold(gray, 27, 255, cv2.THRESH_BINARY)
@@ -48,7 +50,7 @@ for coor in new_nonzero:
     min_distance = distances[nearest_index][0]
     # print("min_distance", min_distance)
 
-    if min_distance > 15:
+    if min_distance > 30:
         # print("enter draw canvas with min distance:", min_distance)
         # canvas[y, x] = 255
         cv2.circle(canvas, (x,y), 5, (0,255,0), 1)
@@ -63,4 +65,24 @@ for coor in new_nonzero:
     
 cv2.imshow("canvas", canvas)
 print("done")
+
+canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
+contours, hier = cv2.findContours(canvas, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+c = max(contours, key=cv2.contourArea)
+cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(c)
+
+new_coral = cv2.imread("cropped.jpg")
+cv2.rectangle(new_coral, (cont_x-10, cont_y), (cont_x+cont_w, cont_y+cont_h+35), (0,255,0), 5)
+cv2.imshow("new_coral", new_coral)
+
 cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+plt.subplot(131), plt.imshow(cv2.cvtColor(old_src, cv2.COLOR_BGR2RGB)), plt.title("Reference Coral")
+plt.subplot(132), plt.imshow(cv2.cvtColor(new_src, cv2.COLOR_BGR2RGB)), plt.title("Present Coral")
+plt.subplot(133), plt.imshow(cv2.cvtColor(new_coral, cv2.COLOR_BGR2RGB)), plt.title("Changes Detected")
+
+# plt.tight_layout()
+plt.show()
+
+print("end")
