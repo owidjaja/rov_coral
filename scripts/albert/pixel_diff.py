@@ -40,8 +40,8 @@ beforeloop = datetime.now()
 print("time to bef loop:", beforeloop - startTime)
 for coor in new_nonzero:
     new_pink_copy = new_pink.copy()
-    # cv2.circle(new_pink_copy, (coor[0][0], coor[0][1]), 5, (0,0,255), -1)
-    # cv2.imshow("ITER", new_pink_copy)
+    cv2.circle(new_pink_copy, (coor[0][0], coor[0][1]), 5, (0,0,255), -1)
+    cv2.imshow("ITER", new_pink_copy)
     
     # nearest_px = find_nearest_white(ref_nonzero, coor[0])
     
@@ -68,16 +68,17 @@ for coor in new_nonzero:
     if min_distance > 30:
         # print("enter draw canvas with min distance:", min_distance)
         # canvas[y, x] = 255
-        # cv2.circle(canvas, (x,y), 5, (0,255,0), 1)
-        canvas.itemset((y,x,1),255)
-        # cv2.imshow("canvas", canvas)
+        cv2.circle(canvas, (x,y), 5, (0,255,0), 1)
+        # canvas.itemset((y,x,1),255)
+        cv2.imshow("canvas", canvas)
 
     ref_pink_copy = old_pink.copy()
-    # cv2.circle(ref_pink_copy, (x, y), 5, (255,0,0), -1)
-    # cv2.imshow("ref_pink_copy", ref_pink_copy)
+    cv2.circle(ref_pink_copy, (x, y), 5, (255,0,0), -1)
+    cv2.imshow("ref_pink_copy", ref_pink_copy)
 
-    # if cv2.waitKey(1) == 27:
-    #     break
+    if cv2.waitKey(1) == 27:
+        break
+    
 afterloop = datetime.now()
 print("time in loop:", afterloop - beforeloop)
 
