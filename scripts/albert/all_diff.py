@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from datetime import datetime
+from matplotlib import pyplot as plt
 startTime = datetime.now()
 
 new_pink = cv2.imread("eyedrop_pink_mask.JPG")
@@ -195,22 +196,21 @@ contours, hier = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPR
 print("len(contours):", len(contours))
 
 new_coral = cv2.imread("cropped.jpg")
-canvas_mask = np.zeros(canvas_gray.shape, np.uint8) # only need grayscale
-MIN_AREA = 200
+MIN_AREA = 400
 for cont in contours:
     area = cv2.contourArea(cont)
     if area < MIN_AREA:
         continue
     print("area:", area)
 
-    cv2.drawContours(canvas_mask, cont, -1, 255, -1)
+    x, y = cont[0][0]
+    print("bgr", canvas[y][x])
+    cont_b, cont_g, cont_r = canvas[y][x]
+    cont_b, cont_g, cont_r =  int(cont_b), int(cont_g), int(cont_r)
+
     cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
-    
-    mean_b, mean_g, mean_r = cv2.mean(canvas, mask=canvas_mask)[:3]
-    mean_b, mean_g, mean_r = int(mean_b), int(mean_g), int(mean_r)
-    print("meanBGR:", mean_b, mean_g, mean_r)
-    
-    cv2.rectangle(new_coral, (cont_x-10, cont_y), (cont_x+cont_w, cont_y+cont_h+35), (mean_b,mean_g,mean_r), 5)
+
+    cv2.rectangle(new_coral, (cont_x-10, cont_y), (cont_x+cont_w, cont_y+cont_h+35), (cont_b,cont_g,cont_r), 5)
 
     cv2.imshow("new_coral", new_coral)
     cv2.waitKey(0)
@@ -221,7 +221,11 @@ endtime = datetime.now()
 print("misc after loop:", endtime - afterloop)
 print("total time:", endtime - startTime)
 
-cv2.waitKey(0)
+if cv2.waitKey(0) == ord('s'):
+    print("saving canvas.jpg and final_new_coral.jpg")
+    cv2.imwrite("canvas.jpg", canvas)
+    cv2.imwrite("final_new_coral.jpg", new_coral)
+
 cv2.destroyAllWindows()
 
 print("end")
