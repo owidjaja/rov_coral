@@ -4,10 +4,10 @@ from datetime import datetime
 from matplotlib import pyplot as plt
 startTime = datetime.now()
 
-new_pink = cv2.imread("eyedrop_pink_mask.JPG")
-new_white = cv2.imread("eyedrop_white_mask.jpg")
-old_pink = cv2.imread("new_pink_mask.jpg")
-old_white = cv2.imread("new_white_mask.jpg")
+old_pink = cv2.imread("out/new_pink.JPG")
+old_white = cv2.imread("out/new_white.jpg")
+new_pink = cv2.imread("out/old_pink.jpg")
+new_white = cv2.imread("out/old_white.jpg")
 
 def get_nonzero(img, to_open=False, ksize=3):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -61,6 +61,14 @@ def process_changes(this_nonzero, other_pink_nonzero, other_white_nonzero, ispin
         target = coor[0]
         tar_x, tar_y = target[0], target[1]
 
+        # out_pink = new_pink.copy()
+        # cv2.circle(out_pink, (tar_x, tar_y), 5, (0,0,255), -1)
+        # cv2.imshow("out_pink", out_pink)
+
+        # out_pink = new_pink.copy()
+        # cv2.circle(out_pink, (tar_x, tar_y), 5, (0,0,255), -1)
+        # cv2.imshow("out_pink", out_pink)
+
         other_pink_distances = np.sqrt((other_pink_nonzero[:,:,0] - tar_x) ** 2 + (other_pink_nonzero[:,:,1] - tar_y) ** 2)
         nearest_index = np.argmin(other_pink_distances)
         pink_distance = other_pink_distances[nearest_index][0]
@@ -71,18 +79,19 @@ def process_changes(this_nonzero, other_pink_nonzero, other_white_nonzero, ispin
 
         if white_distance > max_dist and pink_distance > max_dist:
             """ GROWTH (GREEN) OR DAMAGE (YELLOW) """
-            canvas[tar_y, tar_x] = color1
-            # cv2.circle(canvas, (tar_x, tar_y), 1, color1, 1)
+            # canvas[tar_y, tar_x] = color1
+            cv2.circle(canvas, (tar_x, tar_y), 1, color1, 1)
             # canvas.itemset((tar_y, tar_x, TODO), 255)
 
         elif ispink==False and pink_distance < white_distance:
             """ BLEACHING (RED) """
-            canvas[tar_y, tar_x] = color2
-            # cv2.circle(canvas, (tar_x, tar_y), 1, color2, 1)
+            # canvas[tar_y, tar_x] = color2
+            cv2.circle(canvas, (tar_x, tar_y), 1, color2, 1)
             # canvas.itemset((tar_y, tar_x, TODO), 255)
             
         elif ispink==True and white_distance < pink_distance:
             """ RECOVERY (BLUE) """
+            cv2.circle(canvas, (tar_x, tar_y), 1, color2, 1)
             canvas[tar_y, tar_x] = color2
 
         cv2.imshow("canvas", canvas)
@@ -91,7 +100,9 @@ def process_changes(this_nonzero, other_pink_nonzero, other_white_nonzero, ispin
         #     break
 
 process_changes(newpink_nonzero , oldpink_nonzero, oldwhite_nonzero, ispink=True , color1=(0,255,0)  , color2=(255,0,0), max_dist=MAX_DIST)
+print("IN NEWWHITE NONZERO")
 process_changes(newwhite_nonzero, oldpink_nonzero, oldwhite_nonzero, ispink=False, color1=(0,255,0)  , color2=(0,0,255), max_dist=MAX_DIST)
+print("IN OLDPINK NONZERO")
 process_changes(oldpink_nonzero , newpink_nonzero, newwhite_nonzero, ispink=True , color1=(0,255,255), color2=(0,0,255), max_dist=MAX_DIST)
 process_changes(oldwhite_nonzero, newpink_nonzero, newwhite_nonzero, ispink=False, color1=(0,255,255), color2=(255,0,0), max_dist=MAX_DIST)
 
@@ -182,7 +193,7 @@ afterloop = datetime.now()
 print("time in loop:", afterloop - beforeloop)
 cv2.destroyAllWindows()
 
-cv2.imshow("canvas", canvas)
+# cv2.imshow("canvas", canvas)
 canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, np.ones((10,10), np.uint8))
 cv2.imshow("canvasBGR opened", canvas)
 canvas_gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
@@ -196,7 +207,7 @@ contours, hier = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPR
 print("len(contours):", len(contours))
 
 new_coral = cv2.imread("cropped.jpg")
-MIN_AREA = 400
+MIN_AREA = 600
 for cont in contours:
     area = cv2.contourArea(cont)
     if area < MIN_AREA:

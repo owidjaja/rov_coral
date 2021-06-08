@@ -45,10 +45,10 @@ def get_black_base(hsv, actual_hsv=[105,198,18], tolerance=[30,50,30]):
     # cv2.imshow("hsv", hsv)
 
     hue, sat, val = actual_hsv
-    print("actual:", actual_hsv)
+    print("HSV actual:", actual_hsv)
 
     hue_tol, sat_tol, val_tol = tolerance
-    print("tolerance:", tolerance)
+    print("HSV tolerance:", tolerance)
 
     hue_upper = extend_range(hue, 1, 'u', hue_tol)
     hue_lower = extend_range(hue, 1, 'l', hue_tol)
@@ -59,7 +59,7 @@ def get_black_base(hsv, actual_hsv=[105,198,18], tolerance=[30,50,30]):
 
     upper =  np.array([hue_upper, sat_upper, val_upper])
     lower =  np.array([hue_lower, sat_lower, val_lower])
-    print("range:", lower, upper, '\n')
+    print("HSV range:", lower, upper, '\n')
 
     base_mask = cv2.inRange(hsv, lower, upper)
     # cv2.imshow("base_mask", base_mask)
@@ -87,13 +87,14 @@ def get_mid_line(src, mask):
     c = max(contours, key = cv2.contourArea)
 
     x,y,w,h = cv2.boundingRect(c)
-    # cv2.rectangle(src, (x,y), (x+w,y+h), (255,0,0), 2)
+    cv2.rectangle(src, (x,y), (x+w,y+h), (255,0,0), 5)
 
     height, width = src.shape[:2]
-    # cv2.line(src, (x+w//2, 0), (x+w//2, height), (0,0,255), 2)
+    cv2.line(src, (x+w//2, 0), (x+w//2, height), (0,0,255), 2)
 
-    # cv2.imshow("line", src)
-    # cv2.waitKey(0)
+    cv2.namedWindow("line", cv2.WINDOW_NORMAL)
+    cv2.imshow("line", src)
+    cv2.waitKey(0)
 
     return [x, y, w, h]
 
@@ -106,17 +107,20 @@ def crop_to_standard(src, base_dim, approx_height_ratio=4.5, crop_extend=0.15):
     upper_x = int(x + (1 + crop_extend) * w)
     upper_y = int(y + (1 + crop_extend) * h)
 
+    print("src.shape:", src.shape)
+    print("calc out:", lower_y, upper_y, lower_x, upper_x)
+
     cropped = src[lower_y:upper_y, lower_x:upper_x]
-    cropped = auto_resize(cropped, target_width=360)
+    # cropped = auto_resize(cropped, target_width=360)
 
     cv2.imshow("cropped", cropped)
     k = cv2.waitKey(0)
     if k == ord('s'):
         print("saving cropped image with dim:", cropped.shape)
-        cv2.imwrite("cropped.jpg", cropped)
+        cv2.imwrite("cropped_old.jpg", cropped)
 
 
-src = cv2.imread("new_coral1.JPG")
+src = cv2.imread("res/old_coral1.JPG")
 if src is None:
     exit("ERROR: failed to read image")
 
@@ -128,4 +132,5 @@ base_mask = get_black_base(hsv)
 
 base_dim = get_mid_line(src, base_mask)
 
-crop_to_standard(src, base_dim)
+cv2.namedWindow("cropped", cv2.WINDOW_NORMAL)
+crop_to_standard(src, base_dim, approx_height_ratio=3.5)
