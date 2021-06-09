@@ -1,6 +1,0 @@
-old_src = cv2.imread("res/ref_cor.jpg")
-new_src = cv2.imread("res/image.JPG")
-	old_cropped: approx_height_ratio = 4
-	canvas: close_ksize = 5
-	new_drawn: min_area = 650
-

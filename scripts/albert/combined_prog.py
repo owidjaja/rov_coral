@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from datetime import datetime
 from matplotlib import pyplot as plt
+import imutils
 
 """ align_base.py """
 
@@ -354,25 +355,36 @@ def draw_diff(canvas, new_cropped, min_area=600):
     new_coral = new_cropped
     canvas_gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
 
-    contours, hier = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print("Canvas len(contours):", len(contours))
+    contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # print("Canvas len(contours):", len(contours))
+
+    # get top 4 contours by size
+    contours = imutils.grab_contours(contours_ret)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
 
     for cont in contours:
         area = cv2.contourArea(cont)
+        print("Contour area:", area)
         if area < min_area:
             continue
-        print("Contour area:", area)
 
         x, y = cont[0][0]
-        cont_b, cont_g, cont_r = canvas[y][x]
-        cont_b, cont_g, cont_r =  int(cont_b), int(cont_g), int(cont_r)
+        cont_bgr = canvas[y][x]
+        cb, cg, cr = cont_bgr
+        cb, cg, cr = int(cb), int(cg), int(cr)  # convert np.uint8 into python int
+
+        max_bgr = max(cont_bgr)
+        if abs(cg - cr) <= 15:
+            color = (0,255,255)
+        elif cb == max_bgr:
+            color = (255,0,0)
+        elif cg == max_bgr:
+            color = (0,255,0)
+        else:
+            color = (0,0,255)
 
         cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
-
-        cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), (cont_b,cont_g,cont_r), 5)
-
-        # cv2.imshow("new_coral", new_coral)
-        # cv2.waitKey(0)
+        cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), color, 5)
 
     return new_coral
 
@@ -416,12 +428,13 @@ if __name__ == "__main__":
     px_x, px_y = 0, 0
 
     # old_pink, old_white = eyedrop(old_cropped)
-    old_pink, old_white = cv2.imread("temp_eye/old_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread("temp_eye/old_white.jpg", cv2.IMREAD_UNCHANGED)
+    path = "out/out1/"
+    old_pink, old_white = cv2.imread(path+"old_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread(path+"old_white.jpg", cv2.IMREAD_UNCHANGED)
     ow_h, ow_w = old_white.shape[:2]
     cv2.rectangle(old_white, (0, ow_h//2), (ow_w, ow_h), (0,0,0), -1)
 
     # new_pink, new_white = eyedrop(new_cropped)
-    new_pink, new_white = cv2.imread("temp_eye/new_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread("temp_eye/new_white.jpg", cv2.IMREAD_UNCHANGED)
+    new_pink, new_white = cv2.imread(path+"new_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread(path+"new_white.jpg", cv2.IMREAD_UNCHANGED)
     
     print("old_pink.shape", old_pink.shape)
     print("new_pink.shape", new_pink.shape)
@@ -467,10 +480,10 @@ if __name__ == "__main__":
 
 
 
-    canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=70, close_ksize=0)
+    canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
     # cv2.rectangle(canvas, (260,80), (330,180), (0,0,0), -1)
     cv2.imshow("canvas", canvas)
-    new_drawn = draw_diff(canvas, new_cropped, min_area=650)
+    new_drawn = draw_diff(canvas, new_cropped, min_area=200)
 
     # lower_x, lower_y, upper_x, upper_y = crop_tuple
     # out_new = new_src.copy()
