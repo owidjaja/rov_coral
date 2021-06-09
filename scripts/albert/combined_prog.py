@@ -190,7 +190,7 @@ def click_event(event, x, y, flags, param):
     elif event==cv2.EVENT_LBUTTONDOWN or (event==cv2.EVENT_MOUSEMOVE and adjusting==True):
         px_x, px_y = x, y
         hsv_val = img[y,x]
-        print("Actual HSV Values:", hsv_val)
+        # print("Actual HSV Values:", hsv_val)
         pass
 
 def generate_mask(img, x, y):
@@ -238,7 +238,7 @@ def eyedrop(img):
             break
         elif cv2.waitKey(1) == ord('s'):
             print("saving pink mask")
-            cv2.imwrite("eyedrop_pink_mask.jpg", pink_mask)
+            # cv2.imwrite("eyedrop_pink_mask.jpg", pink_mask)
             break
     cv2.destroyWindow("pink_mask")
 
@@ -255,7 +255,7 @@ def eyedrop(img):
             break
         elif cv2.waitKey(1) == ord('s'):
             print("saving white mask")
-            cv2.imwrite("eyedrop_white_mask.jpg", white_mask)
+            # cv2.imwrite("eyedrop_white_mask.jpg", white_mask)
             break
     cv2.destroyWindow("white_mask")
 
@@ -298,7 +298,7 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
         target = coor[0]
         tar_x, tar_y = target[0], target[1]
         can_h, can_w = canvas.shape[:2]
-        if (tar_x >= can_w) or (tar_y >= can_h): continue
+        # if (tar_x >= can_w) or (tar_y >= can_h): continue
 
         other_pink_distances = np.sqrt((other_pink_nonzero[:,:,0] - tar_x) ** 2 + (other_pink_nonzero[:,:,1] - tar_y) ** 2)
         nearest_index = np.argmin(other_pink_distances)
@@ -326,7 +326,7 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
 
     return canvas
 
-def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3):
+def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=0):
     oldpink_nonzero = get_nonzero(old_pink)
     oldwhite_nonzero = get_nonzero(old_white, to_open=True)
     newpink_nonzero = get_nonzero(new_pink)
@@ -341,9 +341,12 @@ def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=
     canvas = process_changes(canvas, oldpink_nonzero , newpink_nonzero, newwhite_nonzero, ispink=True , color1=(0,255,255), color2=(0,0,255), max_dist=max_dist)
     canvas = process_changes(canvas, oldwhite_nonzero, newpink_nonzero, newwhite_nonzero, ispink=False, color1=(0,255,255), color2=(255,0,0), max_dist=max_dist)
 
-    kernel = np.ones((close_ksize,close_ksize), np.uint8)
-    canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
-    # cv2.imshow("CanvasBGR opened", canvas)
+    cv2.imshow("Canvas not opened", canvas)
+
+    if close_ksize > 0:
+        kernel = np.ones((close_ksize,close_ksize), np.uint8)
+        canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
+        cv2.imshow("CanvasBGR opened", canvas)
 
     return canvas
 
@@ -366,7 +369,7 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
         cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
 
-        cv2.rectangle(new_coral, (cont_x-10, cont_y), (cont_x+cont_w, cont_y+cont_h+35), (cont_b,cont_g,cont_r), 5)
+        cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), (cont_b,cont_g,cont_r), 5)
 
         # cv2.imshow("new_coral", new_coral)
         # cv2.waitKey(0)
@@ -379,11 +382,13 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
 
 
+
+
 if __name__ == "__main__":
     start_time = datetime.now()
 
     old_src = cv2.imread("./res/ref_cor.jpg")
-    new_src = cv2.imread("../res/june2/GOPR0256.JPG")
+    new_src = cv2.imread("out/out1/new_src.JPG")
     if old_src is None or new_src is None:
         exit("ERROR: failed to read image")
     
@@ -395,6 +400,9 @@ if __name__ == "__main__":
 
     cv2.imshow("old_cropped", old_cropped)
     cv2.imshow("new_cropped", new_cropped)
+    
+    cv2.imwrite("out/old_cropped.jpg", old_cropped)
+    cv2.imwrite("out/new_cropped.jpg", new_cropped)
 
     align_base_time = datetime.now()
     print("Align base time:", align_base_time - start_time)
@@ -408,19 +416,50 @@ if __name__ == "__main__":
     px_x, px_y = 0, 0
 
     # old_pink, old_white = eyedrop(old_cropped)
-    new_pink, new_white = eyedrop(new_cropped)
-
-    old_pink, old_white = cv2.imread("old_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread("old_white.jpg", cv2.IMREAD_UNCHANGED)
-
+    old_pink, old_white = cv2.imread("temp_eye/old_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread("temp_eye/old_white.jpg", cv2.IMREAD_UNCHANGED)
     ow_h, ow_w = old_white.shape[:2]
     cv2.rectangle(old_white, (0, ow_h//2), (ow_w, ow_h), (0,0,0), -1)
+
+    # new_pink, new_white = eyedrop(new_cropped)
+    new_pink, new_white = cv2.imread("temp_eye/new_pink.jpg", cv2.IMREAD_UNCHANGED), cv2.imread("temp_eye/new_white.jpg", cv2.IMREAD_UNCHANGED)
     
+    print("old_pink.shape", old_pink.shape)
+    print("new_pink.shape", new_pink.shape)
+
+    def adjust_height(src, target):
+        oc_h, oc_w = src.shape[:2]
+        nc_h, nc_w = target.shape[:2]
+
+        dh = nc_h - oc_h
+        print("Difference in height:", dh)
+
+        if dh <= 0:
+            return src
+
+        target_copy = np.zeros(target.shape, np.uint8)
+        print("target_copy.shape", target_copy.shape)
+        print('src.shape', src.shape)
+
+        target_copy[dh:dh+oc_h, 0:oc_w] = src
+        cv2.imshow("target_copy", target_copy)
+        cv2.waitKey(0)
+
+        return target_copy
+
+    old_pink = adjust_height(old_pink , new_pink)
+    old_white = adjust_height(old_white, new_white)
+
     cv2.imshow("old_pink", old_pink)
     cv2.imshow("old_white", old_white)
     cv2.imshow("new_pink", new_pink)
     cv2.imshow("new_white", new_white)
 
-    cv2.waitKey(0)
+    if cv2.waitKey(0) == ord('s'):
+        print("saving eyedrop results")
+        cv2.imwrite("temp_eye/old_pink.jpg" , old_pink)
+        cv2.imwrite("temp_eye/old_white.jpg", old_white)
+        cv2.imwrite("temp_eye/new_pink.jpg" , new_pink)
+        cv2.imwrite("temp_eye/new_white.jpg", new_white)
     cv2.destroyAllWindows()
     eyedrop_time = datetime.now()
     print("\nEyedrop time:", eyedrop_time - align_base_time)
@@ -428,7 +467,9 @@ if __name__ == "__main__":
 
 
 
-    canvas = get_diff(old_pink, old_white, new_pink, new_white, close_ksize=5)
+    canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=70, close_ksize=0)
+    # cv2.rectangle(canvas, (260,80), (330,180), (0,0,0), -1)
+    cv2.imshow("canvas", canvas)
     new_drawn = draw_diff(canvas, new_cropped, min_area=650)
 
     # lower_x, lower_y, upper_x, upper_y = crop_tuple
@@ -439,9 +480,8 @@ if __name__ == "__main__":
     # cv2.imshow("old_src", auto_resize(old_src))
     # cv2.imshow("new_src", auto_resize(new_src))
 
-    cv2.imshow("canvas", canvas)
     cv2.imshow("old_src", auto_resize(old_src))
-    cv2.imshow("new_drawn", auto_resize(new_drawn))
+    cv2.imshow("new_drawn", auto_resize(new_drawn, target_width=650))
 
     getdiff_time = datetime.now()
     print("\nGetdiff time:", getdiff_time - eyedrop_time)
@@ -450,6 +490,8 @@ if __name__ == "__main__":
         print("Saving to out dir")
         cv2.imwrite("out/old_src.jpg", old_src)
         cv2.imwrite("out/new_src.jpg", new_src)
+        cv2.imwrite("out/old_cropped.jpg", old_cropped)
+        cv2.imwrite("out/new_cropped.jpg", new_cropped)
         cv2.imwrite("out/old_pink.jpg", old_pink)
         cv2.imwrite("out/old_white.jpg", old_white)
         cv2.imwrite("out/new_pink.jpg", new_pink)
