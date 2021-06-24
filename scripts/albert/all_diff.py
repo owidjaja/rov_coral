@@ -94,7 +94,7 @@ def process_changes(this_nonzero, other_pink_nonzero, other_white_nonzero, ispin
             cv2.circle(canvas, (tar_x, tar_y), 1, color2, 1)
             canvas[tar_y, tar_x] = color2
 
-        cv2.imshow("canvas", canvas)
+        # cv2.imshow("canvas", canvas)
 
         # if cv2.waitKey(1) == 27:
         #     break
