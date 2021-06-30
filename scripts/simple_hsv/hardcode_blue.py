@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 
-""" result: background blue mask hard to produce
+""" 
+result: background blue mask hard to produce
 pink hsv actual: 104 75 123
 white hsv actual: 94 125 155
 """

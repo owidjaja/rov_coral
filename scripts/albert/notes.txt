@@ -1,0 +1,14 @@
+Steps
+1. Align the coral by using the black base of the coral because it is consistent
+2. Use predetermined HSV values to get pink and white masks of the coral
+3. Process changes by iterating over pixels in the new coral and determine whether it is closer to
+	a pink or white pixel of the old coral.
+	this method of comparison is quite robust as it does not require perfect alignment of the two corals
+
+
+old_src = cv2.imread("res/ref_cor.jpg")
+new_src = cv2.imread("res/image.JPG")
+	old_cropped: approx_height_ratio = 4
+	canvas: close_ksize = 5
+	new_drawn: min_area = 650
+

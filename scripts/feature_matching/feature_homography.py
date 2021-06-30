@@ -3,8 +3,8 @@ import cv2 as cv
 from matplotlib import pyplot as plt
 
 MIN_MATCH_COUNT = 10
-img1 = cv.imread('box.png',0)          # queryImage
-img2 = cv.imread('box_in_scene.png',0) # trainImage
+img1 = cv.imread('masked_perfect_coral.jpg',0)          # queryImage
+img2 = cv.imread('coral_past_flip.jpg',0) # trainImage
 # if img1 is None or img2 is None:
 #     exit("ERROR: failed to read images")
 

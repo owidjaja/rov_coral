@@ -89,7 +89,7 @@ def generate_mask(img, x, y):
 
     upper =  np.array([hue_upper, sat_upper, val_upper])
     lower =  np.array([hue_lower, sat_lower, val_lower])
-    # print(lower, upper, '\n')
+    print(lower, upper, '\n')
 
     return cv2.inRange(img,lower,upper)
 
@@ -97,8 +97,11 @@ def generate_mask(img, x, y):
 if __name__ == "__main__":
     """ Still struggling finding good mask for underwater image i.e. IMAGES[4] """
 
-    src = cv2.imread("../res/coral_under3.jpg")
-    # src = cv2.resize(src, ( int(src.shape[1]*0.45), int(src.shape[0]*0.45) ), interpolation=cv2.INTER_AREA)
+    cor_arr  = ['coral-colony-test-1_51268948073_o.jpg','coral-colony-test-2_51268762126_o.jpg','coral-colony-test-3_51269790240_o.jpg','Coral Colony F.png']
+    reef_arr = ['coral-reef-test-1_51269493399_o.jpg', 'coral-reef-test-2_51269790145_o.jpg', 'coral-reef-test-3_51269493259_o.jpg', 'coral-reef-test-4_51269790075_o.jpg']
+    src = cv2.imread("../sample/" + reef_arr[3])
+    ratio = 0.30
+    src = cv2.resize(src, ( int(src.shape[1]*ratio), int(src.shape[0]*ratio) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)
 
     # https://stackoverflow.com/questions/10948589/choosing-the-correct-upper-and-lower-hsv-boundaries-for-color-detection-withcv
@@ -111,9 +114,9 @@ if __name__ == "__main__":
     # cv2.resizeWindow("Pixel Preview in HSV", 300, 300)
 
     cv2.namedWindow("Trackbar_Window", cv2.WINDOW_NORMAL)
-    cv2.createTrackbar("hue_track", "Trackbar_Window", 6, 180//2, cb_nothing)
-    cv2.createTrackbar("sat_track", "Trackbar_Window", 42, 255//2, cb_nothing)
-    cv2.createTrackbar("val_track", "Trackbar_Window", 24, 255//2, cb_nothing)
+    cv2.createTrackbar("hue_track", "Trackbar_Window", 15, 180//2, cb_nothing)
+    cv2.createTrackbar("sat_track", "Trackbar_Window", 40, 255//2, cb_nothing)
+    cv2.createTrackbar("val_track", "Trackbar_Window", 30, 255//2, cb_nothing)
 
     """ Initializing global variables to be used in pink and white mask generation """
     adjusting = False # true if right clicked
@@ -125,9 +128,11 @@ if __name__ == "__main__":
         cv2.setMouseCallback('hsv', click_event, hsv)
         pink_mask = generate_mask(hsv, px_x, px_y)
         cv2.imshow("pink_mask", pink_mask)
+        cv2.imshow("masked", cv2.bitwise_and(src, src, mask=pink_mask))
         if cv2.waitKey(1) == 27:
             break
-        elif cv2.waitKey(1) == 's':
+        elif cv2.waitKey(1) == ord('s'):
+            print("saving pink mask")
             cv2.imwrite("eyedrop_pink_mask.jpg", pink_mask)
             break
     cv2.destroyWindow("pink_mask")
@@ -138,7 +143,12 @@ if __name__ == "__main__":
         cv2.setMouseCallback('hsv', click_event, hsv)
         white_mask = generate_mask(hsv, px_x, px_y)
         cv2.imshow("white_mask", white_mask)
+        cv2.imshow("masked", cv2.bitwise_and(src, src, mask=white_mask))
         if cv2.waitKey(1) == 27:
+            break
+        elif cv2.waitKey(1) == ord('s'):
+            print("saving white mask")
+            cv2.imwrite("eyedrop_white_mask.jpg", white_mask)
             break
     cv2.destroyWindow("white_mask")
 
@@ -147,7 +157,11 @@ if __name__ == "__main__":
     pw_mask = cv2.bitwise_or(pink_mask, white_mask)
     cv2.imshow("combined_mask", pw_mask)
 
-    if cv2.waitKey(0) == 's':
-        cv2.imwrite("coral_mask.jpg", pw_mask)
-    print(pw_mask.shape)
+    if cv2.waitKey(0) == ord('m'):
+        print("saving to coral_mask.jpg")
+        cv2.imwrite("reference_coral_mask.jpg", pw_mask)
+    elif cv2.waitKey(0) == ord('s'):
+        print("saving coral after mask as masked_perfect_coral.jpg")
+        cv2.imwrite("masked_perfect_coral.jpg", cv2.bitwise_and(src,src,mask=pw_mask))
+    # print(pw_mask.shape)
     cv2.destroyAllWindows()

@@ -99,18 +99,19 @@ class App():
         else:
             print("No input image given, so loading default image, lena.jpg \n")
             print("Correct Usage: python grabcut.py <filename> \n")
-            filename = 'coral_under3.JPG'
+            filename = '../res/coral_night.jpg'
 
-        self.img = cv.imread(cv.samples.findFile(filename))
-        self.img2 = self.img.copy()                               # a copy of original image
+        # self.img = cv.imread(cv.samples.findFile(filename))
+        self.img = cv.imread(filename)
+        self.img2 = self.img.copy()                                # a copy of original image
         self.mask = np.zeros(self.img.shape[:2], dtype = np.uint8) # mask initialized to PR_BG
         self.output = np.zeros(self.img.shape, np.uint8)           # output image to be shown
 
         # input and output windows
-        cv.namedWindow('output')
-        cv.namedWindow('input')
+        cv.namedWindow('output', cv.WINDOW_NORMAL)
+        cv.namedWindow('input', cv.WINDOW_NORMAL)
         cv.setMouseCallback('input', self.onmouse)
-        cv.moveWindow('input', self.img.shape[1]+10,90)
+        # cv.moveWindow('input', self.img.shape[1]+10,90)
 
         print(" Instructions: \n")
         print(" Draw a rectangle around the object using right mouse button \n")
@@ -165,11 +166,11 @@ class App():
                     traceback.print_exc()
 
             mask2 = np.where((self.mask==1) + (self.mask==3), 255, 0).astype('uint8')
-            cv.imshow("mask2", mask2)
-            cv.imshow("background", np.where(self.mask==0, 255, 0).astype('uint8'))
-            cv.imshow("foreground", np.where(self.mask==1, 255, 0).astype('uint8'))
-            cv.imshow("probable_background", np.where(self.mask==2, 255, 0).astype('uint8'))
-            cv.imshow("probable_foreground", np.where(self.mask==3, 255, 0).astype('uint8'))
+            # cv.imshow("mask2", mask2)
+            # cv.imshow("background", np.where(self.mask==0, 255, 0).astype('uint8'))
+            # cv.imshow("foreground", np.where(self.mask==1, 255, 0).astype('uint8'))
+            # cv.imshow("probable_background", np.where(self.mask==2, 255, 0).astype('uint8'))
+            # cv.imshow("probable_foreground", np.where(self.mask==3, 255, 0).astype('uint8'))
             self.output = cv.bitwise_and(self.img2, self.img2, mask=mask2)
 
         cv.imwrite("grabcut_mask.jpg", self.output)
