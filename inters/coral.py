@@ -55,13 +55,13 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
             canvas[tar_y, tar_x] = color2
             hasChange = True
 
-        if hasChange == True and counter > 10000:
-            print("counter:", counter)
-            hasChange = False
-            counter = 0
-            cv2.imshow("canvas", canvas)
-            if cv2.waitKey(1) == 27:
-                break
+        # if hasChange == True and counter > 10000:
+        #     print("counter:", counter)
+        #     hasChange = False
+        #     counter = 0
+        #     cv2.imshow("canvas", canvas)
+        #     if cv2.waitKey(1) == 27:
+        #         break
 
     return canvas
 
@@ -158,15 +158,20 @@ if __name__ == "__main__":
     # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("new_drawn", cv2.WINDOW_NORMAL)
 
-    old = cv2.imread("./sample/" + src_arr[1])
-    ratio = 0.50
-    old = cv2.resize(old, ( int(old.shape[1]*ratio), int(old.shape[0]*ratio) ), interpolation=cv2.INTER_AREA)
+    PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
+    old = cv2.imread(PATH + src_arr[1])
+    new = cv2.imread(PATH + src_arr[2])
+    RATIO = 0.50
+
+    if old is None or new is None:
+        exit("ERROR: failed to read image")
+
+    old = cv2.resize(old, ( int(old.shape[1]*RATIO), int(old.shape[0]*RATIO) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("old", old)
     old_hsv = cv2.cvtColor(old, cv2.COLOR_BGR2HSV)
 
-    new = cv2.imread("./sample/" + src_arr[2])
-    new = cv2.resize(new, ( int(new.shape[1]*ratio), int(new.shape[0]*ratio) ), interpolation=cv2.INTER_AREA)
-    cv2.imshow("new", new)
+    new = cv2.resize(new, ( int(new.shape[1]*RATIO), int(new.shape[0]*RATIO) ), interpolation=cv2.INTER_AREA)
+    # cv2.imshow("new", new)
     new_hsv = cv2.cvtColor(new, cv2.COLOR_BGR2HSV)
 
     # cv2.waitKey(0)
@@ -175,14 +180,14 @@ if __name__ == "__main__":
     old_pink  = cv2.inRange(old_hsv, lowerb=(149,29,187), upperb=(180,149,255))
     old_white = cv2.inRange(old_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
 
-    cv2.imshow("old_pink" , old_pink)
-    cv2.imshow("old_white", old_white)
+    # cv2.imshow("old_pink" , old_pink)
+    # cv2.imshow("old_white", old_white)
 
     new_pink  = cv2.inRange(new_hsv, lowerb=(149,29,187), upperb=(180,149,255))
     new_white = cv2.inRange(new_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
 
-    cv2.imshow("new_pink" , new_pink)
-    cv2.imshow("new_white", new_white)
+    # cv2.imshow("new_pink" , new_pink)
+    # cv2.imshow("new_white", new_white)
 
     # pink_coral   = cv2.bitwise_and(src, src, mask=pink_mask)
     # white_coral  = cv2.bitwise_and(src, src, mask=white_mask)
@@ -198,6 +203,7 @@ if __name__ == "__main__":
     print("new_pink (h,w):", height, width)
     canvas = np.zeros((height, width, 3), dtype=np.uint8)
 
+    cv2.waitKey(500)
     canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
     cv2.imshow("canvas", canvas)
     new_drawn = draw_diff(canvas, new, min_area=1000)
