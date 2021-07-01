@@ -1,8 +1,21 @@
+#!/usr/bin/python3 -u
+
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import imutils
 from datetime import datetime
+
+# PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
+PATH = "C:/Users/oscar/OneDrive - HKUST Connect/Documents/school work/ROV/coral_colony_health_task2.2/inters/sample/"
+RATIO = 0.50
+
+GREEN  = (0,255,0)
+BLUE   = (255,0,0)
+YELLOW = (0,255,255)
+RED    = (0,0,255)
+
+WAITKEY = 1
 
 def auto_resize(img, target_width=800):
     # print("Original Dimension: ", img.shape)
@@ -43,6 +56,7 @@ def pad_images_to_same_size(images):
         diff_hori = width_max - w
         pad_left = diff_hori//2
         pad_right = diff_hori - pad_left
+
         img_padded = cv2.copyMakeBorder(img, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT, value=0)
         assert img_padded.shape[:2] == (height_max, width_max)
         images_padded.append(img_padded)
@@ -60,7 +74,7 @@ def get_nonzero(mask, to_open=False, ksize=3):
 
     return cv2.findNonZero(thresh)
 
-def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzero, ispink, color1, color2, max_dist=30):
+def process_changes(canvas1, canvas2, this_nonzero, other_pink_nonzero, other_white_nonzero, ispink, color1, color2, max_dist=30):
     counter = 0
     hasChange = True
     # cv2.imshow("canvas", canvas)
@@ -70,7 +84,7 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
         counter += 1
         target = coor[0]
         tar_x, tar_y = target[0], target[1]
-        can_h, can_w = canvas.shape[:2]
+        can_h, can_w = canvas1.shape[:2]
         # if (tar_x >= can_w) or (tar_y >= can_h): continue
 
         # out_pink = new_pink.copy()
@@ -87,18 +101,19 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
 
         if white_distance > max_dist and pink_distance > max_dist:
             """ GROWTH (GREEN) OR DAMAGE (YELLOW) """
-            canvas[tar_y, tar_x] = color1
             hasChange = True
+            canvas1[tar_y, tar_x] = color1
+            
 
         elif ispink==False and pink_distance < white_distance:
             """ BLEACHING (RED) """
-            canvas[tar_y, tar_x] = color2
             hasChange = True
+            canvas2[tar_y, tar_x] = color2
             
         elif ispink==True and white_distance < pink_distance:
             """ RECOVERY (BLUE) """
-            canvas[tar_y, tar_x] = color2
             hasChange = True
+            canvas2[tar_y, tar_x] = color2
 
         # if hasChange == True and counter > 10000:
         #     print("counter:", counter)
@@ -108,7 +123,8 @@ def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzer
         #     if cv2.waitKey(1) == 27:
         #         break
 
-    return canvas
+    return canvas1, canvas2
+
 
 def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=0):
     oldpink_nonzero  = get_nonzero(old_pink)
@@ -117,40 +133,50 @@ def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=
     newwhite_nonzero = get_nonzero(new_white, to_open=True)
 
     height, width = new_pink.shape[:2]
-    canvas = np.zeros((height, width, 3), dtype=np.uint8)
-    # print("canvas.shape",canvas.shape)
+    canvas_zero   = np.zeros((height, width, 3), dtype=np.uint8)
+    canvas_green  = canvas_zero.copy()
+    canvas_blue   = canvas_zero.copy()
+    canvas_red    = canvas_zero.copy()
+    canvas_yellow = canvas_zero.copy()
 
-    print("pc for growth or recovery")
-    canvas = process_changes(canvas, newpink_nonzero , oldpink_nonzero, oldwhite_nonzero, ispink=True , color1=(0,255,0)  , color2=(255,0,0), max_dist=max_dist)
-    cv2.imshow("canvas1", canvas)
+    print("pc for growth(green) or recovery(blue)")
+    canvas_green, canvas_blue = process_changes(canvas_green, canvas_blue, newpink_nonzero, oldpink_nonzero, oldwhite_nonzero, ispink=True , color1=(0,255,0)  , color2=(255,0,0), max_dist=max_dist)
+    cv2.imshow("canvas1", cv2.bitwise_or(canvas_green, canvas_blue))
     print("done")
+    # cv2.waitKey(0)
+
+    print("pc for growth(green) or bleaching(red)")
+    canvas_green, canvas_red = process_changes(canvas_green, canvas_red, newwhite_nonzero, oldpink_nonzero, oldwhite_nonzero, ispink=False, color1=(0,255,0)  , color2=(0,0,255), max_dist=max_dist)
+    cv2.imshow("canvas2", cv2.bitwise_or(canvas_green, canvas_red))
+    print("done")
+    # cv2.waitKey(0)
+
+    print("pc for death(yellow) or bleaching(red)")
+    canvas_yellow, canvas_red = process_changes(canvas_yellow, canvas_red, oldpink_nonzero, newpink_nonzero, newwhite_nonzero, ispink=True , color1=(0,255,255), color2=(0,0,255), max_dist=max_dist)
+    cv2.imshow("canvas3", cv2.bitwise_or(canvas_yellow, canvas_red))
+    print("done")
+    # cv2.waitKey(0)
+
+    print("pc for death(yellow) or recovery(blue)")
+    canvas_yellow, canvas_blue = process_changes(canvas_yellow, canvas_blue, oldwhite_nonzero, newpink_nonzero, newwhite_nonzero, ispink=False, color1=(0,255,255), color2=(255,0,0), max_dist=max_dist)
+    cv2.imshow("canvas4", cv2.bitwise_or(canvas_yellow, canvas_blue))
+    print("done")
+    # cv2.waitKey(0)
+
+    # if close_ksize > 0:
+    #     kernel = np.ones((close_ksize,close_ksize), np.uint8)
+    #     canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
+    #     # cv2.imshow("canvasBGR opened", canvas)
+
+    cv2.destroyAllWindows()
+    cv2.imshow("canvas_green", canvas_green)
+    cv2.imshow("canvas_blue", canvas_blue)
+    cv2.imshow("canvas_red", canvas_red)
+    cv2.imshow("canvas_yellow", canvas_yellow)
     cv2.waitKey(0)
 
-    print("pc for growth or bleaching")
-    canvas = process_changes(canvas, newwhite_nonzero, oldpink_nonzero, oldwhite_nonzero, ispink=False, color1=(0,255,0)  , color2=(0,0,255), max_dist=max_dist)
-    cv2.imshow("canvas2", canvas)
-    print("done")
-    cv2.waitKey(0)
+    return canvas_green, canvas_blue, canvas_red, canvas_yellow
 
-    print("pc for death or bleaching")
-    canvas = process_changes(canvas, oldpink_nonzero , newpink_nonzero, newwhite_nonzero, ispink=True , color1=(0,255,255), color2=(0,0,255), max_dist=max_dist)
-    cv2.imshow("canvas3", canvas)
-    print("done")
-    cv2.waitKey(0)
-
-    print("pc for death or recovery")
-    canvas = process_changes(canvas, oldwhite_nonzero, newpink_nonzero, newwhite_nonzero, ispink=False, color1=(0,255,255), color2=(255,0,0), max_dist=max_dist)
-    cv2.imshow("canvas4", canvas)
-    print("done")
-
-    # cv2.imshow("canvas not opened", canvas)
-
-    if close_ksize > 0:
-        kernel = np.ones((close_ksize,close_ksize), np.uint8)
-        canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
-        # cv2.imshow("canvasBGR opened", canvas)
-
-    return canvas
 
 def draw_diff(canvas, new_cropped, min_area=600):
     new_coral = new_cropped
@@ -161,7 +187,7 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
     # get top 4 contours by size
     contours = imutils.grab_contours(contours_ret)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
+    # contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
 
     for cont in contours:
         area = cv2.contourArea(cont)
@@ -192,8 +218,7 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
 
 
-def get_mask(hsv, lower, upper):
-    return cv2.inRange(hsv, lowerb=lower, upperb=upper)
+########## MAIN ##########
 
 src_arr = [ 'coral-colony-test-1_51268948073_o.jpg',
             'coral-colony-test-2_51268762126_o.jpg',
@@ -201,10 +226,10 @@ src_arr = [ 'coral-colony-test-1_51268948073_o.jpg',
             'Coral Colony F.png']
 
 if __name__ == "__main__":
-    print("growth GREEN")
-    print("recovery BLUE")
-    print("bleaching RED")
-    print("death YELLOW")
+    print("Growth     GREEN")
+    print("Recovery   BLUE")
+    print("Bleaching  RED")
+    print("Death      YELLOW")
 
     # cv2.namedWindow("src", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("old_pink", cv2.WINDOW_NORMAL)
@@ -214,11 +239,8 @@ if __name__ == "__main__":
     # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("new_drawn", cv2.WINDOW_NORMAL)
 
-    # PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
-    PATH = "C:/Users/oscar/OneDrive - HKUST Connect/Documents/school work/ROV/coral_colony_health_task2.2/inters/sample/"
     old = cv2.imread(PATH + src_arr[1])
     new = cv2.imread(PATH + src_arr[3])
-    RATIO = 0.50
 
     if old is None or new is None:
         exit("ERROR: failed to read image")
@@ -258,13 +280,18 @@ if __name__ == "__main__":
     # plt.subplot(132), plt.imshow(cv2.cvtColor(pink_coral, cv2.COLOR_BGR2RGB)), plt.title("pink")
     # plt.subplot(133), plt.imshow(cv2.cvtColor(white_coral, cv2.COLOR_BGR2RGB)), plt.title("white")
     
+
+
+
     height, width = new_pink.shape[:2]
     print("new_pink (h,w):", height, width)
-    canvas = np.zeros((height, width, 3), dtype=np.uint8)
 
     cv2.waitKey(500)
-    canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
-    
+    canvas_green, canvas_blue, canvas_red, canvas_yellow = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
+    canvas = cv2.bitwise_or(canvas_yellow, canvas_green)
+    canvas = cv2.bitwise_or(canvas, canvas_blue)
+    canvas = cv2.bitwise_or(canvas, canvas_red)
+
     print("esc to draw")
     cv2.waitKey(0)
     cv2.destroyAllWindows()

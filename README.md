@@ -4,7 +4,13 @@ Use image recognition to determine the health of a coral colony by comparing its
 Manual page 35-37
 
 Identifying colors of change:
-Growth: new pink branches	Green
-Damage: missing branches	Yellow
-Bleach: past pink turn white	Red
-Recovery: past white turn pink	Blue
+Growth: new pink branches	Green 
+Damage: missing branches	Yellow 
+Bleach: past pink turn white	Red 
+Recovery: past white turn pink	Blue 
+
+subdirectory:
+coral_health: 	nodes 
+inters: 	for internationals 
+man: 		manual 
+scripts:	for regionals
