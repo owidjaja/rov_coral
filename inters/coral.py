@@ -4,6 +4,51 @@ from matplotlib import pyplot as plt
 import imutils
 from datetime import datetime
 
+def auto_resize(img, target_width=800):
+    # print("Original Dimension: ", img.shape)
+
+    orig_height, orig_width = img.shape[:2]
+    scale_ratio = target_width / orig_width
+
+    new_width = int(img.shape[1] * (scale_ratio))
+    new_height= int(img.shape[0] * (scale_ratio))
+    dim = (new_width, new_height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+    # print("Resized Dimension: ", resized.shape, '\n')
+    return resized
+
+def pad_images_to_same_size(images):
+    """
+    :param images: sequence of images
+    :return: list of images padded so that all images have same width and height (max width and height are used)
+    """
+    width_max = 0
+    height_max = 0
+    for img in images:
+        h, w = img.shape[:2]
+        width_max = max(width_max, w)
+        height_max = max(height_max, h)
+
+    images_padded = []
+    for img in images:
+        h, w = img.shape[:2]
+
+        diff_vert = height_max - h
+        # pad_top = diff_vert//2
+        # pad_bottom = diff_vert - pad_top
+        pad_top = diff_vert
+        pad_bottom = 0
+
+        diff_hori = width_max - w
+        pad_left = diff_hori//2
+        pad_right = diff_hori - pad_left
+        img_padded = cv2.copyMakeBorder(img, pad_top, pad_bottom, pad_left, pad_right, cv2.BORDER_CONSTANT, value=0)
+        assert img_padded.shape[:2] == (height_max, width_max)
+        images_padded.append(img_padded)
+
+    return images_padded
+
 def get_nonzero(mask, to_open=False, ksize=3):
     ret, thresh = cv2.threshold(mask, 27, 255, cv2.THRESH_BINARY)
 
@@ -18,7 +63,7 @@ def get_nonzero(mask, to_open=False, ksize=3):
 def process_changes(canvas, this_nonzero, other_pink_nonzero, other_white_nonzero, ispink, color1, color2, max_dist=30):
     counter = 0
     hasChange = True
-    cv2.imshow("canvas", canvas)
+    # cv2.imshow("canvas", canvas)
     cv2.waitKey(1)
 
     for coor in this_nonzero:
@@ -77,18 +122,26 @@ def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=
 
     print("pc for growth or recovery")
     canvas = process_changes(canvas, newpink_nonzero , oldpink_nonzero, oldwhite_nonzero, ispink=True , color1=(0,255,0)  , color2=(255,0,0), max_dist=max_dist)
-    cv2.imshow("canvas", canvas)
-    # cv2.waitKey(0)
+    cv2.imshow("canvas1", canvas)
+    print("done")
+    cv2.waitKey(0)
+
     print("pc for growth or bleaching")
     canvas = process_changes(canvas, newwhite_nonzero, oldpink_nonzero, oldwhite_nonzero, ispink=False, color1=(0,255,0)  , color2=(0,0,255), max_dist=max_dist)
-    cv2.imshow("canvas", canvas)
-    # cv2.waitKey(0)
+    cv2.imshow("canvas2", canvas)
+    print("done")
+    cv2.waitKey(0)
+
     print("pc for death or bleaching")
     canvas = process_changes(canvas, oldpink_nonzero , newpink_nonzero, newwhite_nonzero, ispink=True , color1=(0,255,255), color2=(0,0,255), max_dist=max_dist)
-    cv2.imshow("canvas", canvas)
-    # cv2.waitKey(0)
+    cv2.imshow("canvas3", canvas)
+    print("done")
+    cv2.waitKey(0)
+
     print("pc for death or recovery")
     canvas = process_changes(canvas, oldwhite_nonzero, newpink_nonzero, newwhite_nonzero, ispink=False, color1=(0,255,255), color2=(255,0,0), max_dist=max_dist)
+    cv2.imshow("canvas4", canvas)
+    print("done")
 
     # cv2.imshow("canvas not opened", canvas)
 
@@ -142,7 +195,10 @@ def draw_diff(canvas, new_cropped, min_area=600):
 def get_mask(hsv, lower, upper):
     return cv2.inRange(hsv, lowerb=lower, upperb=upper)
 
-src_arr = ['coral-colony-test-1_51268948073_o.jpg','coral-colony-test-2_51268762126_o.jpg','coral-colony-test-3_51269790240_o.jpg','Coral Colony F.png']
+src_arr = [ 'coral-colony-test-1_51268948073_o.jpg',
+            'coral-colony-test-2_51268762126_o.jpg',
+            'coral-colony-test-3_51269790240_o.jpg',
+            'Coral Colony F.png']
 
 if __name__ == "__main__":
     print("growth GREEN")
@@ -158,20 +214,23 @@ if __name__ == "__main__":
     # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("new_drawn", cv2.WINDOW_NORMAL)
 
-    PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
+    # PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
+    PATH = "C:/Users/oscar/OneDrive - HKUST Connect/Documents/school work/ROV/coral_colony_health_task2.2/inters/sample/"
     old = cv2.imread(PATH + src_arr[1])
-    new = cv2.imread(PATH + src_arr[2])
+    new = cv2.imread(PATH + src_arr[3])
     RATIO = 0.50
 
     if old is None or new is None:
         exit("ERROR: failed to read image")
+
+    old, new = pad_images_to_same_size([old, new])
 
     old = cv2.resize(old, ( int(old.shape[1]*RATIO), int(old.shape[0]*RATIO) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("old", old)
     old_hsv = cv2.cvtColor(old, cv2.COLOR_BGR2HSV)
 
     new = cv2.resize(new, ( int(new.shape[1]*RATIO), int(new.shape[0]*RATIO) ), interpolation=cv2.INTER_AREA)
-    # cv2.imshow("new", new)
+    cv2.imshow("new", new)
     new_hsv = cv2.cvtColor(new, cv2.COLOR_BGR2HSV)
 
     # cv2.waitKey(0)
@@ -205,9 +264,16 @@ if __name__ == "__main__":
 
     cv2.waitKey(500)
     canvas = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
+    
+    print("esc to draw")
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.imshow("old", old)
     cv2.imshow("canvas", canvas)
+
     new_drawn = draw_diff(canvas, new, min_area=1000)
     cv2.imshow("new_drawn", new_drawn)
+
     end = datetime.now()
     print("time:", end-begin)
 

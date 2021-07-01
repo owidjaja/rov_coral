@@ -1,6 +1,20 @@
 #!/usr/bin/env python
 import cv2
 
+def auto_resize(img, target_width=800):
+    # print("Original Dimension: ", img.shape)
+
+    orig_height, orig_width = img.shape[:2]
+    scale_ratio = target_width / orig_width
+
+    new_width = int(img.shape[1] * (scale_ratio))
+    new_height= int(img.shape[0] * (scale_ratio))
+    dim = (new_width, new_height)
+    resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
+    # print("Resized Dimension: ", resized.shape, '\n')
+    return resized
+
 def pad_images_to_same_size(images):
     """
     :param images: sequence of images
@@ -16,9 +30,13 @@ def pad_images_to_same_size(images):
     images_padded = []
     for img in images:
         h, w = img.shape[:2]
+
         diff_vert = height_max - h
-        pad_top = diff_vert//2
-        pad_bottom = diff_vert - pad_top
+        # pad_top = diff_vert//2
+        # pad_bottom = diff_vert - pad_top
+        pad_top = diff_vert
+        pad_bottom = 0
+
         diff_hori = width_max - w
         pad_left = diff_hori//2
         pad_right = diff_hori - pad_left
@@ -42,13 +60,24 @@ RATIO = 0.50
 # # cv2.imshow("new", new)
 # print("new.shape:", new.shape)
 
+count = 0
 mat_arr = []
 for path in src_arr:
-    mat_arr.append(cv2.imread("./sample/"+path))
+    im = auto_resize(cv2.imread("./sample/"+path), target_width=600)
+    mat_arr.append(im)
 
+    print("{}:{}".format(count, im.shape))
+    count += 1
+
+print("")
+count = 0
 padded = pad_images_to_same_size(mat_arr)
 for im in padded:
     cv2.imshow("padded", im)
+    
+    print("{}:{}".format(count, im.shape))
+    count += 1
+
     cv2.waitKey(0)
 
 cv2.waitKey(0)
