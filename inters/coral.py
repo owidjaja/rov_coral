@@ -15,6 +15,8 @@ BLUE   = (255,0,0)
 YELLOW = (0,255,255)
 RED    = (0,0,255)
 
+MIN_AREA = 500
+MAX_DIST = 25
 WAITKEY = 1
 
 def auto_resize(img, target_width=800):
@@ -163,17 +165,18 @@ def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=
     print("done")
     # cv2.waitKey(0)
 
-    # if close_ksize > 0:
-    #     kernel = np.ones((close_ksize,close_ksize), np.uint8)
-    #     canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, kernel)
-    #     # cv2.imshow("canvasBGR opened", canvas)
+    if close_ksize > 0:
+        kernel = np.ones((close_ksize,close_ksize), np.uint8)
+        canvas_green = cv2.morphologyEx(canvas_green, cv2.MORPH_CLOSE, kernel)
+        canvas_yellow = cv2.morphologyEx(canvas_yellow, cv2.MORPH_CLOSE, kernel)
+        # cv2.imshow("canvasBGR opened", canvas)
 
     cv2.destroyAllWindows()
     cv2.imshow("canvas_green", canvas_green)
     cv2.imshow("canvas_blue", canvas_blue)
     cv2.imshow("canvas_red", canvas_red)
     cv2.imshow("canvas_yellow", canvas_yellow)
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
     return canvas_green, canvas_blue, canvas_red, canvas_yellow
 
@@ -187,7 +190,7 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
     # get top 4 contours by size
     contours = imutils.grab_contours(contours_ret)
-    # contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
 
     for cont in contours:
         area = cv2.contourArea(cont)
@@ -202,19 +205,40 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
         max_bgr = max(cont_bgr)
         if abs(cg - cr) <= 15:
-            color = (0,255,255)
+            color = YELLOW
         elif cb == max_bgr:
-            color = (255,0,0)
+            color = BLUE
         elif cg == max_bgr:
-            color = (0,255,0)
+            color = GREEN
         else:
-            color = (0,0,255)
+            color = RED
 
         cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
         cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), color, 5)
 
     return new_coral
 
+def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
+    new_coral = new_cropped
+    color_arr = [GREEN, BLUE, RED, YELLOW]
+    i = -1
+    for canvas in canvas_arr:
+        i += 1
+        canvas_gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
+        contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # print("canvas len(contours):", len(contours))
+
+        contours = imutils.grab_contours(contours_ret)
+        for cont in contours:
+            area = cv2.contourArea(cont)
+            print("Contour Area:", area)
+            if area < min_area:
+                continue
+
+            cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
+            cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), color_arr[i], 5)
+
+    return new_coral
 
 
 
@@ -286,19 +310,21 @@ if __name__ == "__main__":
     height, width = new_pink.shape[:2]
     print("new_pink (h,w):", height, width)
 
-    cv2.waitKey(500)
-    canvas_green, canvas_blue, canvas_red, canvas_yellow = get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=3)
+    # cv2.waitKey(500)
+    canvas_green, canvas_blue, canvas_red, canvas_yellow = get_diff(old_pink, old_white, new_pink, new_white, max_dist=MAX_DIST, close_ksize=3)
     canvas = cv2.bitwise_or(canvas_yellow, canvas_green)
     canvas = cv2.bitwise_or(canvas, canvas_blue)
     canvas = cv2.bitwise_or(canvas, canvas_red)
 
     print("esc to draw")
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
     cv2.destroyAllWindows()
     cv2.imshow("old", old)
     cv2.imshow("canvas", canvas)
 
-    new_drawn = draw_diff(canvas, new, min_area=1000)
+    canvas_arr = [canvas_green, canvas_blue, canvas_red, canvas_yellow]
+    # new_drawn = draw_diff(canvas, new, min_area=1000)
+    new_drawn = draw_diff_from_multiple_canvas(canvas_arr, new, min_area=MIN_AREA)
     cv2.imshow("new_drawn", new_drawn)
 
     end = datetime.now()
