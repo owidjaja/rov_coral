@@ -15,7 +15,7 @@ BLUE   = (255,0,0)
 YELLOW = (0,255,255)
 RED    = (0,0,255)
 
-MIN_AREA = 800
+MIN_AREA = 1000
 MAX_DIST = 15
 WAITKEY = 1
 
@@ -218,7 +218,7 @@ def draw_diff(canvas, new_cropped, min_area=600):
 
     return new_coral
 
-def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
+def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=MIN_AREA):
     new_coral = new_cropped
     color_arr = [GREEN, BLUE, RED, YELLOW]
     i = -1
@@ -229,22 +229,23 @@ def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
         contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         # print("canvas len(contours):", len(contours))
 
-        if cont_drawn >= 3:
-            print("Drawn 4 rectangles, breaking loop")
-            break
-
         contours = imutils.grab_contours(contours_ret)
         for cont in contours:
             area = cv2.contourArea(cont)
-            print("Contour Area:", area)
             if area < min_area:
                 continue
 
+            print("Drawing Contour with Area:", area)
             cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
             cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), color_arr[i], 5)
 
             cont_drawn += 1
 
+            """ Omitting for now since sample randomized image has 5 changes, expected 4 """
+            # if cont_drawn == 4:
+            #     print("Drawn 4 rectangles, exiting draw function")
+                # return new_coral
+        
     return new_coral
 
 def amplify_contours(canvas, min_area=MIN_AREA//2, dilate_ksize=5, close_ksize=3):
@@ -255,7 +256,7 @@ def amplify_contours(canvas, min_area=MIN_AREA//2, dilate_ksize=5, close_ksize=3
     contours = imutils.grab_contours(contours_ret)
     for cont in contours:
         area = cv2.contourArea(cont)
-        print("Contour Area:", area)
+        # print("Contour Area:", area)
         if area < min_area:
             cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
             cv2.rectangle(canvas, (cont_x, cont_y), (cont_x+cont_w, cont_y+cont_h), (0,0,0), -1)
