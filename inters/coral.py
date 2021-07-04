@@ -15,8 +15,8 @@ BLUE   = (255,0,0)
 YELLOW = (0,255,255)
 RED    = (0,0,255)
 
-MIN_AREA = 500
-MAX_DIST = 25
+MIN_AREA = 800
+MAX_DIST = 15
 WAITKEY = 1
 
 def auto_resize(img, target_width=800):
@@ -222,11 +222,15 @@ def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
     new_coral = new_cropped
     color_arr = [GREEN, BLUE, RED, YELLOW]
     i = -1
+    cont_drawn = 0
     for canvas in canvas_arr:
         i += 1
         canvas_gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
         contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         # print("canvas len(contours):", len(contours))
+
+        if cont_drawn >= 4:
+            break
 
         contours = imutils.grab_contours(contours_ret)
         for cont in contours:
@@ -238,13 +242,16 @@ def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
             cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
             cv2.rectangle(new_coral, (cont_x-10, cont_y-5), (cont_x+cont_w+5, cont_y+cont_h+20), color_arr[i], 5)
 
+            cont_drawn += 1
+
     return new_coral
 
 
 
 ########## MAIN ##########
 
-src_arr = [ 'coral-colony-test-1_51268948073_o.jpg',
+src_arr = [ 'coral_ref.jpg',
+            'coral-colony-test-1_51268948073_o.jpg',
             'coral-colony-test-2_51268762126_o.jpg',
             'coral-colony-test-3_51269790240_o.jpg',
             'Coral Colony F.png']
@@ -263,8 +270,8 @@ if __name__ == "__main__":
     # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("new_drawn", cv2.WINDOW_NORMAL)
 
-    old = cv2.imread(PATH + src_arr[1])
-    new = cv2.imread(PATH + src_arr[3])
+    old = cv2.imread(PATH + src_arr[0])
+    new = cv2.imread(PATH + src_arr[4])
 
     if old is None or new is None:
         exit("ERROR: failed to read image")
@@ -284,37 +291,31 @@ if __name__ == "__main__":
 
     old_pink  = cv2.inRange(old_hsv, lowerb=(149,29,187), upperb=(180,149,255))
     old_white = cv2.inRange(old_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
-
     # cv2.imshow("old_pink" , old_pink)
     # cv2.imshow("old_white", old_white)
 
     new_pink  = cv2.inRange(new_hsv, lowerb=(149,29,187), upperb=(180,149,255))
     new_white = cv2.inRange(new_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
-
     # cv2.imshow("new_pink" , new_pink)
     # cv2.imshow("new_white", new_white)
-
-    # pink_coral   = cv2.bitwise_and(src, src, mask=pink_mask)
-    # white_coral  = cv2.bitwise_and(src, src, mask=white_mask)
-
-    # cv2.imshow("pink_coral" , pink_coral)
-    # cv2.imshow("white_coral", white_coral)
-
-    # plt.subplot(131), plt.imshow(cv2.cvtColor(src, cv2.COLOR_BGR2RGB)), plt.title("src")
-    # plt.subplot(132), plt.imshow(cv2.cvtColor(pink_coral, cv2.COLOR_BGR2RGB)), plt.title("pink")
-    # plt.subplot(133), plt.imshow(cv2.cvtColor(white_coral, cv2.COLOR_BGR2RGB)), plt.title("white")
-    
-
-
 
     height, width = new_pink.shape[:2]
     print("new_pink (h,w):", height, width)
 
     # cv2.waitKey(500)
-    canvas_green, canvas_blue, canvas_red, canvas_yellow = get_diff(old_pink, old_white, new_pink, new_white, max_dist=MAX_DIST, close_ksize=3)
-    canvas = cv2.bitwise_or(canvas_yellow, canvas_green)
-    canvas = cv2.bitwise_or(canvas, canvas_blue)
-    canvas = cv2.bitwise_or(canvas, canvas_red)
+    canvas_green, canvas_blue, canvas_red, canvas_yellow = \
+        get_diff(old_pink, old_white, new_pink, new_white, max_dist=MAX_DIST, close_ksize=3)
+    
+    cg_h, cg_w = canvas_green.shape[:2]
+    cv2.rectangle(canvas_green, (0,int(5/8*cg_h)), (cg_w,cg_h), (0,0,0), thickness=-1)
+    
+    kernel = np.ones((5,5), np.uint8)
+    canvas_green = cv2.morphologyEx(canvas_green, cv2.MORPH_CLOSE, kernel)
+    canvas_yellow = cv2.morphologyEx(canvas_yellow, cv2.MORPH_CLOSE, kernel)
+
+    canvas = cv2.bitwise_or(canvas_red, canvas_blue)
+    canvas = cv2.bitwise_or(canvas, canvas_yellow)
+    canvas = cv2.bitwise_or(canvas, canvas_green)
 
     print("esc to draw")
     # cv2.waitKey(0)
