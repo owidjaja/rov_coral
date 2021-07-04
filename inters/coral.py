@@ -27,7 +27,7 @@ def auto_resize(img, target_width=800):
 
     new_width = int(img.shape[1] * (scale_ratio))
     new_height= int(img.shape[0] * (scale_ratio))
-    dim = (new_width, new_height)
+    dim = (new_height, new_width)
     resized = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
 
     # print("Resized Dimension: ", resized.shape, '\n')
@@ -229,7 +229,8 @@ def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
         contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         # print("canvas len(contours):", len(contours))
 
-        if cont_drawn >= 4:
+        if cont_drawn >= 3:
+            print("Drawn 4 rectangles, breaking loop")
             break
 
         contours = imutils.grab_contours(contours_ret)
@@ -264,10 +265,6 @@ def amplify_contours(canvas, min_area=MIN_AREA//2, dilate_ksize=5, close_ksize=3
 
     canvas = cv2.dilate(canvas, np.ones((dilate_ksize,dilate_ksize), dtype=np.uint8))
     cv2.imshow("amplified contours", canvas)
-    cv2.waitKey(0)
-
-    canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, np.ones((close_ksize,close_ksize), dtype=np.uint8))
-    cv2.imshow("closed contours", canvas_green)
     cv2.waitKey(0)
 
     return canvas
@@ -314,13 +311,19 @@ if __name__ == "__main__":
     # cv2.waitKey(0)
     begin = datetime.now()
 
-    old_pink  = cv2.inRange(old_hsv, lowerb=(149,29,187), upperb=(180,149,255))
-    old_white = cv2.inRange(old_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
+    lower_pink_hsv = (149,29,152)
+    upper_pink_hsv = (180,182,255)
+
+    lower_white_hsv = (76,0,154)
+    upper_white_hsv = (118,77,255)
+
+    old_pink  = cv2.inRange(old_hsv, lowerb=lower_pink_hsv, upperb=upper_pink_hsv)
+    old_white = cv2.inRange(old_hsv, lowerb=lower_white_hsv, upperb=upper_white_hsv)
     # cv2.imshow("old_pink" , old_pink)
     # cv2.imshow("old_white", old_white)
 
-    new_pink  = cv2.inRange(new_hsv, lowerb=(149,29,187), upperb=(180,149,255))
-    new_white = cv2.inRange(new_hsv, lowerb=(76,0,154)  , upperb=(156,77,255))
+    new_pink  = cv2.inRange(new_hsv, lowerb=lower_pink_hsv, upperb=upper_pink_hsv)
+    new_white = cv2.inRange(new_hsv, lowerb=lower_white_hsv, upperb=upper_white_hsv)
     # cv2.imshow("new_pink" , new_pink)
     # cv2.imshow("new_white", new_white)
 
@@ -335,11 +338,11 @@ if __name__ == "__main__":
     cg_h, cg_w = canvas_green.shape[:2]
     cv2.rectangle(canvas_green, (0,int(5/8*cg_h)), (cg_w,cg_h), (0,0,0), thickness=-1)
     
-    kernel = np.ones((5,5), np.uint8)
-    canvas_green = cv2.morphologyEx(canvas_green, cv2.MORPH_CLOSE, kernel)
-    canvas_yellow = cv2.morphologyEx(canvas_yellow, cv2.MORPH_CLOSE, kernel)
+    # kernel = np.ones((5,5), np.uint8)
+    # canvas_green = cv2.morphologyEx(canvas_green, cv2.MORPH_CLOSE, kernel)
+    # canvas_yellow = cv2.morphologyEx(canvas_yellow, cv2.MORPH_CLOSE, kernel)
 
-    canvas_green = amplify_contours(canvas_green)
+    # canvas_green = amplify_contours(canvas_green)
 
     # Only for imshow purposes, drawing diff is based on seperate canvases
     canvas = cv2.bitwise_or(canvas_red, canvas_blue)
