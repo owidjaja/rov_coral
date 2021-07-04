@@ -172,10 +172,10 @@ def get_diff(old_pink, old_white, new_pink, new_white, max_dist=30, close_ksize=
         # cv2.imshow("canvasBGR opened", canvas)
 
     cv2.destroyAllWindows()
-    cv2.imshow("canvas_green", canvas_green)
-    cv2.imshow("canvas_blue", canvas_blue)
-    cv2.imshow("canvas_red", canvas_red)
-    cv2.imshow("canvas_yellow", canvas_yellow)
+    # cv2.imshow("canvas_green", canvas_green)
+    # cv2.imshow("canvas_blue", canvas_blue)
+    # cv2.imshow("canvas_red", canvas_red)
+    # cv2.imshow("canvas_yellow", canvas_yellow)
     # cv2.waitKey(0)
 
     return canvas_green, canvas_blue, canvas_red, canvas_yellow
@@ -246,6 +246,31 @@ def draw_diff_from_multiple_canvas(canvas_arr, new_cropped, min_area=600):
 
     return new_coral
 
+def amplify_contours(canvas, min_area=MIN_AREA//2, dilate_ksize=5, close_ksize=3):
+    canvas_gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY)
+    contours_ret = cv2.findContours(canvas_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # print("canvas len(contours):", len(contours))
+
+    contours = imutils.grab_contours(contours_ret)
+    for cont in contours:
+        area = cv2.contourArea(cont)
+        print("Contour Area:", area)
+        if area < min_area:
+            cont_x, cont_y, cont_w, cont_h = cv2.boundingRect(cont)
+            cv2.rectangle(canvas, (cont_x, cont_y), (cont_x+cont_w, cont_y+cont_h), (0,0,0), -1)
+
+    cv2.imshow("filtered contours", canvas)
+    cv2.waitKey(0)
+
+    canvas = cv2.dilate(canvas, np.ones((dilate_ksize,dilate_ksize), dtype=np.uint8))
+    cv2.imshow("amplified contours", canvas)
+    cv2.waitKey(0)
+
+    canvas = cv2.morphologyEx(canvas, cv2.MORPH_CLOSE, np.ones((close_ksize,close_ksize), dtype=np.uint8))
+    cv2.imshow("closed contours", canvas_green)
+    cv2.waitKey(0)
+
+    return canvas
 
 
 ########## MAIN ##########
@@ -306,6 +331,7 @@ if __name__ == "__main__":
     canvas_green, canvas_blue, canvas_red, canvas_yellow = \
         get_diff(old_pink, old_white, new_pink, new_white, max_dist=MAX_DIST, close_ksize=3)
     
+    """ Special for canvas_green: remove bottom 3/8 for any potential growth """
     cg_h, cg_w = canvas_green.shape[:2]
     cv2.rectangle(canvas_green, (0,int(5/8*cg_h)), (cg_w,cg_h), (0,0,0), thickness=-1)
     
@@ -313,11 +339,14 @@ if __name__ == "__main__":
     canvas_green = cv2.morphologyEx(canvas_green, cv2.MORPH_CLOSE, kernel)
     canvas_yellow = cv2.morphologyEx(canvas_yellow, cv2.MORPH_CLOSE, kernel)
 
+    canvas_green = amplify_contours(canvas_green)
+
+    # Only for imshow purposes, drawing diff is based on seperate canvases
     canvas = cv2.bitwise_or(canvas_red, canvas_blue)
     canvas = cv2.bitwise_or(canvas, canvas_yellow)
     canvas = cv2.bitwise_or(canvas, canvas_green)
 
-    print("esc to draw")
+    # print("esc to draw")
     # cv2.waitKey(0)
     cv2.destroyAllWindows()
     cv2.imshow("old", old)
