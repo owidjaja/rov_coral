@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     cor_arr  = ['coral-colony-test-1_51268948073_o.jpg','coral-colony-test-2_51268762126_o.jpg','coral-colony-test-3_51269790240_o.jpg','Coral Colony F.png']
     reef_arr = ['coral-reef-test-1_51269493399_o.jpg', 'coral-reef-test-2_51269790145_o.jpg', 'coral-reef-test-3_51269493259_o.jpg', 'coral-reef-test-4_51269790075_o.jpg']
-    src = cv2.imread("../sample/" + reef_arr[3])
+    src = cv2.imread("../sample/" + cor_arr[3])
     ratio = 0.30
     src = cv2.resize(src, ( int(src.shape[1]*ratio), int(src.shape[0]*ratio) ), interpolation=cv2.INTER_AREA)
     cv2.imshow("src", src)

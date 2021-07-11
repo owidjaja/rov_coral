@@ -5,9 +5,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import imutils
 from datetime import datetime
+import os
 
-# PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
-PATH = "C:/Users/oscar/OneDrive - HKUST Connect/Documents/school work/ROV/coral_colony_health_task2.2/inters/sample/"
+from numpy.lib.npyio import load
+
 RATIO = 0.50
 
 GREEN  = (0,255,0)
@@ -293,8 +294,23 @@ if __name__ == "__main__":
     # cv2.namedWindow("canvas", cv2.WINDOW_NORMAL)
     # cv2.namedWindow("new_drawn", cv2.WINDOW_NORMAL)
 
-    old = cv2.imread(PATH + src_arr[0])
-    new = cv2.imread(PATH + src_arr[4])
+    # PATH = "/home/hammerhead/everythingThatWeClone/coral_colony_health_task2.2/inters/sample/"
+    # PATH = "C:/Users/oscar/OneDrive - HKUST Connect/Documents/school work/ROV/coral_colony_health_task2.2/inters/sample/"
+    # old = cv2.imread(PATH + src_arr[0])
+    # new = cv2.imread(PATH + src_arr[1])
+
+    def load_image_from_folder(subdir_name): # Loading all image from a folder
+        path_name = os.path.dirname(os.path.abspath(os.path.realpath(__file__)))
+        folder = os.sep.join([path_name, subdir_name])
+        for filename in os.listdir(folder):
+            image = cv2.imread(os.path.join(folder,filename))
+            if image is None:
+                exit("Failed to read image")
+            else:
+                return image
+
+    old = load_image_from_folder("reference")
+    new = load_image_from_folder("coral")
 
     if old is None or new is None:
         exit("ERROR: failed to read image")
