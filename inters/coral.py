@@ -380,12 +380,11 @@ if __name__ == "__main__":
     end = datetime.now()
     print("time:", end-begin)
 
+    plt.tight_layout()
+    # plt.show()
 
-
-
-
-plt.tight_layout()
-# plt.show()
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    while True:
+        k = cv2.waitKey(0) & 0xFF
+        if k == 27:
+            cv2.destroyAllWindows()
+            break
